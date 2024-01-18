@@ -1,0 +1,1 @@
+INSERT INTO missing_table DEFAULT VALUES;
