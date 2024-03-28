@@ -1,4 +1,5 @@
 from sqlorm import Engine, EngineError, Session, Transaction
+from sqlorm.engine import parse_uri
 import sqlite3
 import pytest
 
@@ -24,6 +25,11 @@ def test_create_engine():
     assert e.connection_factory.args == (":memory:",)
     assert e.connection_factory.kwargs == {"isolation_level": "IMMEDIATE"}
     assert isinstance(e.connect(), sqlite3.Connection)
+
+
+def test_parse_uri():
+    uri = "sqlite://:memory:?pragma[journal_mode]=WAL&pragma[mmap_size]=2&fine_tune=True&ext=a.so&ext=b.so"
+    assert parse_uri(uri) == ("sqlite", [":memory:"], {"pragma": {"journal_mode": "WAL", "mmap_size": 2}, "fine_tune": True, "ext": ["a.so", "b.so"]})
 
 
 def test_pool():

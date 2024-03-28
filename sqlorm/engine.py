@@ -2,7 +2,6 @@ from importlib import import_module
 from contextlib import contextmanager
 import threading
 import logging
-import functools
 import inspect
 import urllib.parse
 from .sql import render, ParametrizedStmt
@@ -30,13 +29,9 @@ class Engine:
 
     @classmethod
     def from_uri(cls, uri, **kwargs):
-        module, uri = uri.split("://", 1)
-        if "?" in uri:
-            uri, qs = uri.split("?", 1)
-            for k, v in urllib.parse.parse_qs(qs).items():
-                kwargs[k] = v if len(v) > 1 else v[0]
-        args = [uri] if uri else []
-        return cls.from_dbapi(module, *args, **kwargs)
+        module, args, _kwargs = parse_uri(uri)
+        _kwargs.update(kwargs)
+        return cls.from_dbapi(module, *args, **_kwargs)
     
     @classmethod
     def from_dbapi(cls, dbapi, *connect_args, **kwargs):
@@ -431,3 +426,24 @@ class Transaction:
 
 class TransactionEndedError(Exception):
     pass
+
+
+def parse_uri(uri):
+    module, uri = uri.split("://", 1)
+    kwargs = {}
+    if "?" in uri:
+        uri, qs = uri.split("?", 1)
+        for k, v in urllib.parse.parse_qs(qs).items():
+            for i in range(len(v)):
+                if v[i].isdecimal():
+                    v[i] = int(v[i])
+                elif v[i] in ("True", "False"):
+                    v[i] = True if v[i] == "True" else False
+            v = v if len(v) > 1 else v[0]
+            if "[" in k:
+                k, sub = k.rstrip("]").split("[")
+                kwargs.setdefault(k, {})[sub] = v
+            else:
+                kwargs[k] = v
+    args = [uri] if uri else []
+    return module, args, kwargs
