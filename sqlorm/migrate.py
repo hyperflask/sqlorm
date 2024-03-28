@@ -23,7 +23,7 @@ def main(argv=None):
                 from_version=args.from_version,
                 to_version=args.to_version,
                 use_schema_version=not args.ignore_schema_version,
-                dryryn=args.dryrun,
+                dryrun=args.dryrun,
                 logger=logging)
 
 

@@ -49,7 +49,7 @@ def create_table(mapper, default_type="varchar"):
     ]))
 
 
-def migrate(path="migrations", from_version=None, to_version=None, use_schema_version=True, save_version_after_step=False, logger=None, dryryn=False, engine=None):
+def migrate(path="migrations", from_version=None, to_version=None, use_schema_version=True, save_version_after_step=False, logger=None, dryrun=False, engine=None):
     logger = logging.getLogger("sqlorm") if logger is True else logger
     with ensure_transaction(engine):
         if from_version is None and use_schema_version:
@@ -60,7 +60,7 @@ def migrate(path="migrations", from_version=None, to_version=None, use_schema_ve
         for version, name, filename in migrations:
             if logger:
                 logger.info(f"Executing migration {version}: {name}")
-            if dryryn:
+            if dryrun:
                 continue
             try:
                 execute_migration(filename, engine)
