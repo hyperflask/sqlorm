@@ -79,7 +79,7 @@ Table of content:
 7. [SQL utilities](#sql-utilities)
 8. [Mapping any class](#mapping-any-class)
 9. [Managing the schema](#managing-the-schema)
-10. [Database specific utils](#database-specific-utils)
+10. [Database specific](#database-specific)
 
 ## Getting started
 
@@ -227,6 +227,10 @@ Finally, `Engine.from_uri()` provides an alternative way where an URI is used in
 - the scheme specifies the dbapi module name
 - the hostname+path part is passed as argument (optional)
 - the query string (after ?) is parsed and passed as keyword arguments (optional)
+    - *True* and *False* strings are parsed as boolean
+    - numbers are parsed as int
+    - keys can be repeated to create a list (eg: `foo=bar&foo=buz` is parsed to `foo=["bar", "buz"]`)
+    - keys with brackets are resolved as dict (eg: `foo[bar]=value` is parsed to `foo={"bar": "value"}`)
 
 ```python
 engine = Engine.from_uri("sqlite://:memory:") # sqlite instead of sqlite3 to use sqlorm's sqlite override
@@ -248,7 +252,7 @@ sqlorm provides built-in support for the following databases:
 
 | Database | DBAPI implementation | URI scheme | sqlorm overrides | Required package |
 | --- | --- | --- | --- | --- |
-| SQLite | [sqlite3](https://docs.python.org/3/library/sqlite3.html) | sqlite:// | Uses `sqlite3.Row` as the default row_factory | |
+| SQLite | [sqlite3](https://docs.python.org/3/library/sqlite3.html) | sqlite:// | Uses `sqlite3.Row` as the default row_factory and check_same_thread=False | |
 | PostgreSQL | [psycopg3](https://www.psycopg.org/psycopg3/docs/index.html) | postgresql:// | No overrides | psycopg\[binary\] |
 | MySQL | [mysql.connector](https://dev.mysql.com/doc/connector-python/en/connector-python-introduction.html) | mysql:// | Uses `MySQLCursorDict` as default cursor class | mysql-connector-python |
 
@@ -1449,7 +1453,19 @@ with engine:
     init_db()
 ```
 
-## Database specific utils
+## Database specific
+
+### Sqlite
+
+By default, Python's sqlite3 module does not allow a connection created in one thread to be re-used in another thread.
+This creates an issue with the way pooling works. Additionnaly, sqlorm's sessions being per-thread, there is a kind of guarantee that a connection object won't be used concurrently.
+For this reason, the default value of `check_same_thread` is set to false by default.
+
+Additional parameters are available when connecting:
+
+ - *pragma*: a dict of sqlite pragmas to set on connection
+ - *ext*: a list of extension modules to load on connection
+ - *fine_tune*: a boolean indicating to apply fine tuned pragmas for high concurrent workloads like web servers ([explanations](https://fractaledmind.github.io/2023/09/07/enhancing-rails-sqlite-fine-tuning/))
 
 ### Postgresql
 
