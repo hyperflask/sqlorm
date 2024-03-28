@@ -20,8 +20,10 @@ def test_create_engine():
     e = Engine.from_dbapi("sqlite3", ":memory:", pool=False)
     assert e.dbapi is sqlite3
 
-    e = Engine.from_uri("sqlite3://:memory:?isolation_level=IMMEDIATE", pool=False)
+    uri = "sqlite3://:memory:?isolation_level=IMMEDIATE"
+    e = Engine.from_uri(uri, pool=False)
     assert e.dbapi is sqlite3
+    assert e.connection_factory.uri == uri
     assert e.connection_factory.args == (":memory:",)
     assert e.connection_factory.kwargs == {"isolation_level": "IMMEDIATE"}
     assert isinstance(e.connect(), sqlite3.Connection)

@@ -31,7 +31,9 @@ class Engine:
     def from_uri(cls, uri, **kwargs):
         module, args, _kwargs = parse_uri(uri)
         _kwargs.update(kwargs)
-        return cls.from_dbapi(module, *args, **_kwargs)
+        engine = cls.from_dbapi(module, *args, **_kwargs)
+        engine.connection_factory.uri = uri
+        return engine
     
     @classmethod
     def from_dbapi(cls, dbapi, *connect_args, **kwargs):
