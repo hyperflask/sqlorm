@@ -1,4 +1,4 @@
-from sqlorm import Model, SQL, Relationship, is_dirty
+from sqlorm import Model, SQL, Relationship, is_dirty, PrimaryKey
 from sqlorm.mapper import Mapper
 from models import *
 
@@ -150,6 +150,18 @@ def test_sql_methods(engine):
 
         task = Task.get(2)
         assert task.done
+
+    class TestModel(Model):
+        table = "test"
+
+        id: PrimaryKey[int]
+        col1: str
+
+        @classmethod
+        def find_all(cls):
+            "WHERE col1 = 'foo'"
+
+    assert TestModel.find_all.sql(TestModel) == "SELECT test.id , test.col1 FROM test WHERE col1 = 'foo'"
 
 
 def test_dirty_tracking(engine):

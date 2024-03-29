@@ -61,7 +61,13 @@ class ModelMetaclass(abc.ABCMeta):
                 attr = attr.__wrapped__
             if callable(attr):
                 if is_sqlfunc(attr):
-                    if not getattr(attr, "query_decorator", None) and ".select_from(" in inspect.getdoc(attr):
+                    doc = inspect.getdoc(attr)
+                    if doc.upper().startswith("WHERE"):
+                        if wrapper is classmethod:
+                            attr.__doc__ = "{cls.select_from()} " + doc
+                        elif not wrapper:
+                            attr.__doc__ = "{self.select_from()} " + doc
+                    if not getattr(attr, "query_decorator", None) and ".select_from(" in doc:
                         # because the statement does not start with SELECT, it would default to execute when using .select_from()
                         attr = fetchall(attr)
                     # the model registry is passed as template locals to sql func methods

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sqlorm-py"
-version = "0.1.2"
+version = "0.1.3"
 description = "A new kind or ORM that do not abstract away your database or SQL queries."
 authors = ["Maxime Bouroumeau-Fuseau <maxime.bouroumeau@gmail.com>"]
 readme = "README.md"
