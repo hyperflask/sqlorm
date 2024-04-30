@@ -69,6 +69,12 @@ class ModelMetaclass(abc.ABCMeta):
                             attr.__doc__ = "{cls.select_from()} " + doc
                         elif not wrapper:
                             attr.__doc__ = "{self.select_from()} " + doc
+                    if doc.upper().startswith("INSERT INTO ("):
+                        doc = f"INSERT INTO {dct['table']} {doc[12:]}"
+                    if doc.upper().startswith("UPDATE SET"):
+                        doc = f"UPDATE {dct['table']} {doc[7:]}"
+                    if doc.upper().startswith("DELETE WHERE"):
+                        doc = f"DELETE FROM {dct['table']} {doc[7:]}"
                     if not getattr(attr, "query_decorator", None) and ".select_from(" in doc:
                         # because the statement does not start with SELECT, it would default to execute when using .select_from()
                         attr = fetchall(attr)

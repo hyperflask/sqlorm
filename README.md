@@ -33,7 +33,7 @@ class Task(Model):
         "SELECT WHERE not done"
 
     def toggle(self):
-        "UPDATE tasks SET done = not done WHERE id = %(self.id)s RETURNING *"
+        "UPDATE SET done = not done WHERE id = %(self.id)s RETURNING *"
 
 @sqlfunc
 def tasks_completion_report(start_date, end_date):
@@ -772,6 +772,12 @@ class Task(Model):
     def find_todos(cls):
         "SELECT WHERE NOT done"
 ```
+
+Similarly:
+
+ - `INSERT INTO (col1) VALUES (%(value)s)` will be transformed to `INSERT INTO {table} (...`
+ - `UPDATE SET col = %(value)s` to `UPDATE {table} SET ...`
+ - `DELETE WHERE ...` to `DELETE FROM {table} WHERE ...`
 
 You can also create methods using query decorators directly:
 

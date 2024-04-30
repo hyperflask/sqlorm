@@ -161,7 +161,22 @@ def test_sql_methods(engine):
         def find_all(cls):
             "SELECT WHERE col1 = 'foo'"
 
+        @classmethod
+        def test_insert(cls):
+            "INSERT INTO (col1) VALUES ('bar')"
+
+        @classmethod
+        def test_update(cls):
+            "UPDATE SET col1 = 'bar'"
+
+        @classmethod
+        def test_delete(cls):
+            "DELETE WHERE col1 = 'foo'"
+
     assert TestModel.find_all.sql(TestModel) == "SELECT test.id , test.col1 FROM test WHERE col1 = 'foo'"
+    assert TestModel.test_insert.sql(TestModel) == "INSERT INTO test (col1) VALUES ('bar')"
+    assert TestModel.test_insert.sql(TestModel) == "UPDATE test SET col1 = 'bar'"
+    assert TestModel.test_insert.sql(TestModel) == "DELETE FROM test WHERE col1 = 'foo'"
 
 
 def test_dirty_tracking(engine):
