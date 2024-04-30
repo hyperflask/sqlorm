@@ -1,6 +1,6 @@
 # sqlorm
 
-A new kind or ORM that do not abstract away your database or SQL queries.
+SQL-focused Python ORM
 
 - Thin layer on top of [DBAPI 2.0](https://peps.python.org/pep-0249/)
 - Use SQL as usual
@@ -64,8 +64,6 @@ with engine:
     report = tasks_completion_report(datetime.date(2024, 1, 1), datetime.date.today())
 ```
 
-Install using pip: `pip install sqlorm-py`
-
 See [Flask-SQLORM](https://github.com/hyperflask/flask-sqlorm) for a Flask integration.
 
 Table of content:
@@ -80,6 +78,10 @@ Table of content:
 8. [Mapping any class](#mapping-any-class)
 9. [Managing the schema](#managing-the-schema)
 10. [Database specific](#database-specific)
+
+## Installation
+
+    pip install sqlorm-py
 
 ## Getting started
 
