@@ -159,7 +159,7 @@ def test_sql_methods(engine):
 
         @classmethod
         def find_all(cls):
-            "WHERE col1 = 'foo'"
+            "SELECT WHERE col1 = 'foo'"
 
     assert TestModel.find_all.sql(TestModel) == "SELECT test.id , test.col1 FROM test WHERE col1 = 'foo'"
 

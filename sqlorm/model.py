@@ -62,6 +62,8 @@ class ModelMetaclass(abc.ABCMeta):
             if callable(attr):
                 if is_sqlfunc(attr):
                     doc = inspect.getdoc(attr)
+                    if doc.upper().startswith("SELECT WHERE"):
+                        doc = doc[7:]
                     if doc.upper().startswith("WHERE"):
                         if wrapper is classmethod:
                             attr.__doc__ = "{cls.select_from()} " + doc

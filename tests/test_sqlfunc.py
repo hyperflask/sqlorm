@@ -129,19 +129,19 @@ def test_is_sqlfunc():
     
     assert not is_sqlfunc(func)
 
-    def func():
+    def func2():
         "SELECT * FROM table"
 
-    assert is_sqlfunc(func)
+    assert is_sqlfunc(func2)
 
-    def func():
+    def func3():
         """SELECT *
         FROM table"""
 
-    assert is_sqlfunc(func)
+    assert is_sqlfunc(func3)
 
     @sqlfunc
-    def func():
+    def func4():
         "SELECT * FROM table"
 
-    assert not is_sqlfunc(func)
+    assert not is_sqlfunc(func4)
