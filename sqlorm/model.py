@@ -6,8 +6,13 @@ from .engine import Engine, ensure_transaction
 from .sqlfunc import is_sqlfunc, sqlfunc, fetchall, fetchone, execute, update
 from .resultset import CompositeResultSet
 from .types import SQLType
-from .mapper import (Mapper, MappedColumnMixin, Relationship as MappedRelationship,
-                     MapperError, PrimaryKeyColumn)
+from .mapper import (
+    Mapper,
+    MappedColumnMixin,
+    Relationship as MappedRelationship,
+    MapperError,
+    PrimaryKeyColumn,
+)
 
 
 class ModelMetaclass(abc.ABCMeta):
@@ -18,7 +23,7 @@ class ModelMetaclass(abc.ABCMeta):
         model_class = super().__new__(cls, name, bases, dct)
         cls.process_meta_inheritance(model_class)
         return cls.post_process_model_class(model_class)
-    
+
     @staticmethod
     def pre_process_model_class_dict(name, bases, dct):
         model_registry = {}
@@ -26,7 +31,7 @@ class ModelMetaclass(abc.ABCMeta):
             if issubclass(base, BaseModel):
                 model_registry = base.__model_registry__
                 break
-        
+
         dct["table"] = SQL.Id(dct.get("__table__", dct.get("table", name.lower())))
 
         mapped_attrs = {}
@@ -44,7 +49,7 @@ class ModelMetaclass(abc.ABCMeta):
             elif isinstance(dct[name], Relationship):
                 # add now to keep the declaration order
                 mapped_attrs[name] = dct[name]
-                
+
         for attr_name, attr in dct.items():
             if isinstance(attr, Column) and not attr.name:
                 # in the case of models, we allow column object to be initialized without names
@@ -85,13 +90,15 @@ class ModelMetaclass(abc.ABCMeta):
 
         dct["__mapper__"] = mapped_attrs
         return dct
-    
+
     @staticmethod
     def post_process_model_class(cls):
         mapped_attrs = cls.__mapper__
-        cls.__mapper__ = ModelMapper(cls, cls.table.name, allow_unknown_columns=cls.Meta.allow_unknown_columns)
+        cls.__mapper__ = ModelMapper(
+            cls, cls.table.name, allow_unknown_columns=cls.Meta.allow_unknown_columns
+        )
         cls.__mapper__.map(mapped_attrs)
-        cls.c = cls.__mapper__.columns # handy shortcut
+        cls.c = cls.__mapper__.columns  # handy shortcut
 
         auto_primary_key = cls.Meta.auto_primary_key
         if auto_primary_key and not cls.__mapper__.primary_key:
@@ -103,7 +110,7 @@ class ModelMetaclass(abc.ABCMeta):
 
         cls.__model_registry__.register(cls)
         return cls
-    
+
     @staticmethod
     def process_meta_inheritance(cls):
         if getattr(cls.Meta, "__inherit__", True):
@@ -111,7 +118,9 @@ class ModelMetaclass(abc.ABCMeta):
             for key, value in bases_meta.items():
                 if not hasattr(cls.Meta, key):
                     setattr(cls.Meta, key, value)
-            cls.Meta.__inherit__ = False # prevent further inheritance processing when subclassing models
+            cls.Meta.__inherit__ = (
+                False  # prevent further inheritance processing when subclassing models
+            )
 
     @staticmethod
     def aggregate_bases_meta_attrs(cls):
@@ -120,9 +129,11 @@ class ModelMetaclass(abc.ABCMeta):
             if issubclass(base, BaseModel):
                 if getattr(base.Meta, "__inherit__", True):
                     meta.update(ModelMetaclass.aggregate_bases_meta_attrs(base))
-                meta.update({k: getattr(base.Meta, k) for k in dir(base.Meta) if not k.startswith("_")})
+                meta.update(
+                    {k: getattr(base.Meta, k) for k in dir(base.Meta) if not k.startswith("_")}
+                )
         return meta
-            
+
 
 class ModelMapper(Mapper):
     """Subclass of Mapper to handle dirtyness tracking"""
@@ -133,16 +144,23 @@ class ModelMapper(Mapper):
             object.__setattr__(obj, "__dirty__", obj.__dirty__ - attrs)
         return attrs
 
-    def dehydrate(self, obj, dirty_only=None, with_primary_key=True, with_unknown=None, additional_attrs=None) -> t.Mapping[str, t.Any]:
+    def dehydrate(
+        self, obj, dirty_only=None, with_primary_key=True, with_unknown=None, additional_attrs=None
+    ) -> t.Mapping[str, t.Any]:
         only = None
         if dirty_only or dirty_only is None and obj.Meta.insert_update_dirty_only:
             only = getattr(obj, "__dirty__", set())
             if with_unknown or with_unknown is None and self.allow_unknown_columns:
                 additional_attrs = [a for a in only if a not in self.attr_names]
 
-        return super().dehydrate(obj, only=only, with_primary_key=with_primary_key,
-                                 with_unknown=with_unknown, additional_attrs=additional_attrs)
-    
+        return super().dehydrate(
+            obj,
+            only=only,
+            with_primary_key=with_primary_key,
+            with_unknown=with_unknown,
+            additional_attrs=additional_attrs,
+        )
+
 
 class ModelColumnMixin(MappedColumnMixin):
     """Subclass of mapper.Column to provide a Model aware behavior and act as property descriptor"""
@@ -157,14 +175,13 @@ class ModelColumnMixin(MappedColumnMixin):
         if self.attribute not in obj.__dict__ and self.lazy:
             self.fetch(obj)
         return obj.__dict__.get(self.attribute)
-    
+
     def __set__(self, obj, value):
         obj.__dict__[self.attribute] = value
         flag_dirty_attr(obj, self.attribute)
 
     def fetch(self, obj):
-        """Fetches the value of the column from the database and loads it in the object
-        """
+        """Fetches the value of the column from the database and loads it in the object"""
         cols = []
         if isinstance(self.lazy, str):
             # lazy can be a string, in which case you can define groups of columns to be lazily loaded together
@@ -176,11 +193,11 @@ class ModelColumnMixin(MappedColumnMixin):
         rs = obj.__class__.query(obj.__class__.select_from(cols))
         # we use the hydrator as multiple values may be returned at once if lazy is a group
         obj.__mapper__.hydrate(obj, rs.first(with_loader=False))
-    
+
     def is_loaded(self, obj):
         """Checks if this column has been loaded in the object"""
         return self.attribute in obj.__dict__
-    
+
 
 class Column(ModelColumnMixin, SQLColumn):
     pass
@@ -211,11 +228,11 @@ class Relationship(MappedRelationship):
         if not target:
             raise MapperError(f"Missing target for relationship '{self.attribute}'")
         return target
-    
+
     @property
     def target_mapper(self):
         return self.target.__mapper__
-    
+
     @property
     def __isabstractmethod__(self):
         # compatibility between this description __getattr__ usage and abc.ABC
@@ -227,16 +244,15 @@ class Relationship(MappedRelationship):
         if self.attribute not in obj.__dict__:
             self.fetch(obj)
         return obj.__dict__[self.attribute]
-    
+
     def __set__(self, obj, value):
         obj.__dict__[self.attribute] = value if self.single else self.list_class(obj, self, value)
-    
+
     def is_loaded(self, obj):
         return self.attribute in obj.__dict__
-    
+
     def fetch(self, obj):
-        """Fetches the list of related objects from the database and loads it in the object
-        """
+        """Fetches the list of related objects from the database and loads it in the object"""
         r = self.target.query(self.select_from_target(obj))
         self.__set__(obj, r.first() if self.single else r.all())
 
@@ -249,26 +265,30 @@ class RelatedObjectsList(object):
 
     def __iter__(self):
         return iter(self.items)
-    
+
     def __getitem__(self, idx):
         return self.items[idx]
-    
+
     def __len__(self):
         return len(self.items)
-    
+
     def __contains__(self, item):
         return item in self.items
 
     def append(self, item):
         target_attr = self.relationship.target_attr
         if not target_attr:
-            raise MapperError(f"Missing target_attr on relationship '{self.relationship.attribute}'")
+            raise MapperError(
+                f"Missing target_attr on relationship '{self.relationship.attribute}'"
+            )
         setattr(item, target_attr, getattr(self.obj, self.relationship.source_attr))
 
     def remove(self, item):
         target_attr = self.relationship.target_attr
         if not target_attr:
-            raise MapperError(f"Missing target_attr on relationship '{self.relationship.attribute}'")
+            raise MapperError(
+                f"Missing target_attr on relationship '{self.relationship.attribute}'"
+            )
         setattr(item, target_attr, None)
 
 
@@ -280,7 +300,7 @@ def flag_dirty_attr(obj, attr):
 
 def is_dirty(obj) -> bool:
     return bool(getattr(obj, "__dirty__", None))
-    
+
 
 class ModelRegistry(dict):
     def register(self, model):
@@ -293,37 +313,46 @@ class ModelRegistry(dict):
 
 
 class BaseModel(abc.ABC, metaclass=ModelMetaclass):
-    """The base class for the model system whether you want utility methods or not
-    """
+    """The base class for the model system whether you want utility methods or not"""
+
     __engine__: t.ClassVar[t.Optional[Engine]] = None
     __model_registry__: t.ClassVar[ModelRegistry] = ModelRegistry()
     __mapper__: t.ClassVar[Mapper]
     table: SQL.Id
     c: SQL.Cols
-    
+
     # Meta classes provide a way to configure the mapper behavior
     # Values are auto inherited from Meta classes of parent classes
     class Meta:
-        auto_primary_key: t.Optional[str] = "id" # auto generate a primary key with this name if no primary key are declared
-        allow_unknown_columns: bool = True # hydrate() will set attributes for unknown columns
+        auto_primary_key: t.Optional[str] = (
+            "id"  # auto generate a primary key with this name if no primary key are declared
+        )
+        allow_unknown_columns: bool = True  # hydrate() will set attributes for unknown columns
 
     @classmethod
     def bind(cls, engine: Engine):
         """Creates a new base model class bound to the provided engine"""
-        return type("BoundModel", (cls, abc.ABC), {"__engine__": engine, "__model_registry__": ModelRegistry()})
+        return type(
+            "BoundModel",
+            (cls, abc.ABC),
+            {"__engine__": engine, "__model_registry__": ModelRegistry()},
+        )
 
 
 class Model(BaseModel, abc.ABC):
-    """Our standard model class with common ORM utility methods
-    """
+    """Our standard model class with common ORM utility methods"""
 
     class Meta:
-        insert_update_dirty_only: bool = True # use BaseModel.__dirty__ to decide which data to insert() or update()
+        insert_update_dirty_only: bool = (
+            True  # use BaseModel.__dirty__ to decide which data to insert() or update()
+        )
 
     @classmethod
-    def select_from(cls, columns=None, table_alias=None, with_rels=None, with_joins=None, with_lazy=False) -> SQL:
+    def select_from(
+        cls, columns=None, table_alias=None, with_rels=None, with_joins=None, with_lazy=False
+    ) -> SQL:
         return cls.__mapper__.select_from(columns, table_alias, with_rels, with_joins, with_lazy)
-    
+
     @classmethod
     def query(cls, stmt, params=None, nested=None, **resultset_kwargs) -> CompositeResultSet:
         """Executes a query and returns results where rows are hydrated to model objects"""
@@ -332,7 +361,14 @@ class Model(BaseModel, abc.ABC):
 
     @classmethod
     @fetchall
-    def find_all(cls, _where: t.Optional[str | SQL] = None, with_rels=None, with_joins=None, with_lazy=False, **cols) -> CompositeResultSet:
+    def find_all(
+        cls,
+        _where: t.Optional[str | SQL] = None,
+        with_rels=None,
+        with_joins=None,
+        with_lazy=False,
+        **cols,
+    ) -> CompositeResultSet:
         where = SQL.And([])
         if _where:
             where.append(_where)
@@ -345,25 +381,35 @@ class Model(BaseModel, abc.ABC):
 
     @classmethod
     @fetchone
-    def find_one(cls, _where: t.Optional[str | SQL] = None, with_rels=None, with_joins=None, with_lazy=False, **cols):
-        return cls.find_all.sql(cls, _where, with_rels=with_rels, with_joins=with_joins, with_lazy=with_lazy, **cols).limit(1)
+    def find_one(
+        cls,
+        _where: t.Optional[str | SQL] = None,
+        with_rels=None,
+        with_joins=None,
+        with_lazy=False,
+        **cols,
+    ):
+        return cls.find_all.sql(
+            cls, _where, with_rels=with_rels, with_joins=with_joins, with_lazy=with_lazy, **cols
+        ).limit(1)
 
     @classmethod
     @fetchone
     def get(cls, pk, with_rels=False, with_lazy=False):
-        return cls.select_from(with_rels=with_rels, with_lazy=with_lazy)\
-            .where(cls.__mapper__.primary_key_condition(pk, cls.table.name))
-    
+        return cls.select_from(with_rels=with_rels, with_lazy=with_lazy).where(
+            cls.__mapper__.primary_key_condition(pk, cls.table.name)
+        )
+
     @classmethod
     def create(cls, **values):
         obj = cls(**values)
         obj.insert()
         return obj
-    
+
     def __init__(self, **values):
         for k, v in dict(self.__mapper__.defaults, **values).items():
             setattr(self, k, v)
-    
+
     def __setattr__(self, name, value):
         self.__dict__[name] = value
         flag_dirty_attr(self, name)
@@ -371,17 +417,17 @@ class Model(BaseModel, abc.ABC):
     @update
     def refresh(self, **select_kwargs):
         return self.__mapper__.select_by_pk(self.__mapper__.get_primary_key(self), **select_kwargs)
-    
+
     @update
     def insert(self, **dehydrate_kwargs):
         return self.__mapper__.insert(self, **dehydrate_kwargs).returning("*")
-    
+
     @update
     def update(self, **dehydrate_kwargs):
         stmt = self.__mapper__.update(self, **dehydrate_kwargs)
         if stmt:
             return stmt.returning("*")
-    
+
     def save(self, **dehydrate_kwargs):
         if self.__mapper__.get_primary_key(self):
             self.update(**dehydrate_kwargs)
@@ -391,6 +437,6 @@ class Model(BaseModel, abc.ABC):
     @execute
     def delete(self):
         return self.__mapper__.delete(self)
-    
+
     def __repr__(self):
         return f"<{self.__class__.__name__}({self.__mapper__.get_primary_key(self) or '?'})>"

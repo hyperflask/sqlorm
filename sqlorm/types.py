@@ -28,7 +28,7 @@ class SQLType:
         if isinstance(other, str):
             return self.sql_type == other
         return SQLType.from_pytype(other).sql_type == self.sql_type
-    
+
     def __str__(self):
         return self.sql_type
 
@@ -44,16 +44,18 @@ DateTime = SQLType("datetime")
 JSON = SQLType("json", json.loads, json.dumps)
 Pickle = SQLType("text", pickle.loads, pickle.dumps)
 
-PYTHON_TYPES_MAP.update({
-    int: Integer,
-    float: Decimal,
-    str: Text,
-    bool: Boolean,
-    datetime.date: Date,
-    datetime.time: Time,
-    datetime.datetime: DateTime,
-    dict: JSON
-})
+PYTHON_TYPES_MAP.update(
+    {
+        int: Integer,
+        float: Decimal,
+        str: Text,
+        bool: Boolean,
+        datetime.date: Date,
+        datetime.time: Time,
+        datetime.datetime: DateTime,
+        dict: JSON,
+    }
+)
 
 __all__ = (
     "SQLType",
@@ -65,5 +67,5 @@ __all__ = (
     "Date",
     "DateTime",
     "JSON",
-    "Pickle"
+    "Pickle",
 )

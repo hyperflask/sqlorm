@@ -12,6 +12,8 @@ PrimaryKey = t.Annotated[T, PrimaryKeyColumn]
 
 class UnknownValue:
     pass
+
+
 unknown_value = UnknownValue()
 
 
@@ -20,22 +22,26 @@ class MapperError(Exception):
 
 
 class Mapper:
-    """Maps database columns to object attributes
-    """
+    """Maps database columns to object attributes"""
 
     @classmethod
     def from_class(cls, object_class, **kwargs):
-        """Creates a Mapper from a class annotations
-        """
+        """Creates a Mapper from a class annotations"""
         if hasattr(object_class, "__mapper__"):
             return object_class.__mapper__
-        mapper = cls(object_class, kwargs.pop("table", getattr(object_class, "__table__", object_class.__name__)), **kwargs)
+        mapper = cls(
+            object_class,
+            kwargs.pop("table", getattr(object_class, "__table__", object_class.__name__)),
+            **kwargs,
+        )
         for key, value in object_class.__annotations__.items():
             primary_key = False
             if value.__class__ is t._AnnotatedAlias:
                 primary_key = PrimaryKeyColumn in getattr(value, "__metadata__", ())
                 value = value.__args__[0]
-            mapper.columns.append(Column(key, SQLType.from_pytype(value), primary_key=primary_key, attribute=key))
+            mapper.columns.append(
+                Column(key, SQLType.from_pytype(value), primary_key=primary_key, attribute=key)
+            )
         return mapper
 
     def __init__(self, object_class, table, allow_unknown_columns=True, **mapped_attrs):
@@ -62,7 +68,7 @@ class Mapper:
                 self.map(k, v)
         else:
             raise MapperError("Provide a Column or Relationship")
-        
+
     def get(self, name):
         for col in self.columns:
             if col.attribute == name:
@@ -70,24 +76,24 @@ class Mapper:
         for rel in self.relationships:
             if rel.attribute == name:
                 return rel
-            
+
     def __getitem__(self, name):
         attr = self.get(name)
         if not attr:
             raise KeyError()
         return attr
-    
+
     @property
     def attributes(self):
         attrs = {}
         attrs.update({c.attribute: c for c in self.columns})
         attrs.update({r.attribute: r for r in self.relationships})
         return attrs
-        
+
     @property
     def attr_names(self) -> t.Sequence[str]:
         return list(self.attributes.keys())
-        
+
     @property
     def eager_columns(self) -> ColumnList:
         """Returns a ColumnList with columns that are not lazy loaded"""
@@ -97,7 +103,7 @@ class Mapper:
     def lazy_columns(self) -> ColumnList:
         """Rerturns a ColumnList with only columns that are lazy loaded"""
         return ColumnList([c for c in self.columns if c.lazy])
-        
+
     @property
     def primary_key(self):
         """Returns the single column or a tuple of column containing columns flagged as part of the primary key"""
@@ -106,18 +112,23 @@ class Mapper:
             return pk_cols
         if pk_cols:
             return pk_cols[0]
-        
+
     def primary_key_condition(self, pk, table_alias=None, prefix=None) -> SQL:
         """Returns the SQL condition to query a single row from this mapped table matching the primary key"""
         cols = self.primary_key
         if isinstance(cols, list):
             if not isinstance(pk, (list, tuple)):
                 raise MapperError("Primary key is a composite and requires a tuple")
-            return SQL.And([col.aliased_table(table_alias).prefixed(prefix) == SQL.Param(pk[i]) for i, col in enumerate(cols)])
+            return SQL.And(
+                [
+                    col.aliased_table(table_alias).prefixed(prefix) == SQL.Param(pk[i])
+                    for i, col in enumerate(cols)
+                ]
+            )
         if cols:
             return cols.aliased_table(table_alias).prefixed(prefix) == SQL.Param(pk)
         raise MapperError(f"Missing primary key for table {self.table}")
-    
+
     def get_primary_key(self, obj):
         """Returns the primary key value of the model object"""
         pk = []
@@ -128,7 +139,7 @@ class Mapper:
             return pk
         if pk:
             return pk[0]
-    
+
     @property
     def defaults(self) -> t.Mapping[str, t.Any]:
         """Returns default column values"""
@@ -139,24 +150,25 @@ class Mapper:
             elif col.default is not unknown_value:
                 defaults[col.attribute] = col.default
         return defaults
-    
+
     def hydrate_new(self, data):
         """Initializes a new object, skipping __init__() and populates it using hydrate()"""
-        obj = self.object_class.__new__(self.object_class) # prevents calling __init__()
+        obj = self.object_class.__new__(self.object_class)  # prevents calling __init__()
         self.hydrate(obj, data)
         return obj
-    
+
     def hydrate(self, obj, data, with_unknown=None):
-        """Populates a model object with data from the db
-        """
+        """Populates a model object with data from the db"""
         attrs = set()
-        for key in data.keys(): # avoid using .items() as some DBAPI returned objects only provide keys() (eg: sqlite3)
+        for key in (
+            data.keys()
+        ):  # avoid using .items() as some DBAPI returned objects only provide keys() (eg: sqlite3)
             if key in self.columns.names:
                 col = self.columns[key]
                 col.load(obj, data)
                 key = col.attribute
             elif with_unknown or with_unknown is None and self.allow_unknown_columns:
-                obj.__dict__[key] = data[key] # ensure that no custom setter are used
+                obj.__dict__[key] = data[key]  # ensure that no custom setter are used
             else:
                 continue
             attrs.add(key)
@@ -165,10 +177,17 @@ class Mapper:
         else:
             object.__setattr__(obj, "__hydrated_attrs__", obj.__hydrated_attrs__ | attrs)
         return attrs
-    
-    def dehydrate(self, obj, only=None, except_=None, with_primary_key=True, with_unknown=None, additional_attrs=None) -> t.Mapping[str, t.Any]:
-        """Returns the model object as data to be sent to the db
-        """
+
+    def dehydrate(
+        self,
+        obj,
+        only=None,
+        except_=None,
+        with_primary_key=True,
+        with_unknown=None,
+        additional_attrs=None,
+    ) -> t.Mapping[str, t.Any]:
+        """Returns the model object as data to be sent to the db"""
         cols = [c for c in self.columns if with_primary_key or not c.primary_key]
         if with_unknown or with_unknown is None and self.allow_unknown_columns:
             for attr in getattr(obj, "__hydrated_attrs__", []):
@@ -176,7 +195,12 @@ class Mapper:
                     cols.append(Column(attr, attribute=attr))
         if additional_attrs:
             for attr in additional_attrs:
-                cols.append(Column(additional_attrs[attr] if isinstance(additional_attrs, dict) else attr, attribute=attr))
+                cols.append(
+                    Column(
+                        additional_attrs[attr] if isinstance(additional_attrs, dict) else attr,
+                        attribute=attr,
+                    )
+                )
 
         values = {}
         for col in cols:
@@ -186,8 +210,10 @@ class Mapper:
                 continue
             col.dump(obj, values)
         return values
-    
-    def select_columns(self, with_lazy=False, table_alias=None, prefix=None, wildcard_if_empty=True):
+
+    def select_columns(
+        self, with_lazy=False, table_alias=None, prefix=None, wildcard_if_empty=True
+    ):
         if self.force_select_wildcard:
             return SQL.Cols([], table=table_alias, wildcard=True)
         if isinstance(with_lazy, str):
@@ -203,54 +229,78 @@ class Mapper:
                 raise MapperError("Cannot use prefix if no columns have been mapped")
             columns = ["*"]
         return SQL.Cols(columns, table=table_alias, prefix=prefix)
-    
-    def select_from(self, columns=None, table_alias=None, with_rels=None, with_joins=None, with_lazy=False) -> SQL:
-        """Creates a SELECT statement based on the mapping information
-        """
+
+    def select_from(
+        self, columns=None, table_alias=None, with_rels=None, with_joins=None, with_lazy=False
+    ) -> SQL:
+        """Creates a SELECT statement based on the mapping information"""
         if columns is None:
-            columns = self.select_columns(with_lazy, table_alias or self.table, wildcard_if_empty=True)
+            columns = self.select_columns(
+                with_lazy, table_alias or self.table, wildcard_if_empty=True
+            )
         else:
             columns = SQL.Cols(columns).aliased_table(table_alias or self.table)
         joins = []
         if with_rels is True or with_rels == "lazy" or with_rels is None:
-            with_rels = [r.attribute for r in self.relationships if with_rels is True or (with_rels=="lazy" and r.lazy) or (with_rels is None and not r.lazy)]
+            with_rels = [
+                r.attribute
+                for r in self.relationships
+                if with_rels is True
+                or (with_rels == "lazy" and r.lazy)
+                or (with_rels is None and not r.lazy)
+            ]
         if with_joins is True or with_joins == "lazy" or with_joins is None:
-            with_joins = [r.attribute for r in self.relationships if with_joins is True or (with_joins=="lazy" and r.lazy) or (with_joins is None and not r.lazy)]
+            with_joins = [
+                r.attribute
+                for r in self.relationships
+                if with_joins is True
+                or (with_joins == "lazy" and r.lazy)
+                or (with_joins is None and not r.lazy)
+            ]
         if with_rels or with_joins:
             for rel in self.relationships:
                 if rel.attribute in with_rels or rel in with_rels:
                     columns.append(rel.columns)
-                if rel.attribute in with_rels or rel in with_rels or with_joins and (rel.attribute in with_joins or rel in with_joins):
+                if (
+                    rel.attribute in with_rels
+                    or rel in with_rels
+                    or with_joins
+                    and (rel.attribute in with_joins or rel in with_joins)
+                ):
                     joins.append(rel.join_clause())
         return SQL.select(columns).from_(SQL.Id(self.table, table_alias), *joins)
 
     def select_by_pk(self, pk, **select_kwargs):
-        return self.select_from(**select_kwargs).where(self.primary_key_condition(pk, table_alias=select_kwargs.get('table_alias')))
-    
+        return self.select_from(**select_kwargs).where(
+            self.primary_key_condition(pk, table_alias=select_kwargs.get("table_alias"))
+        )
+
     def insert(self, obj, **dehydrate_kwargs):
         return SQL.insert(self.table, self.dehydrate(obj, **dehydrate_kwargs))
-    
+
     def update(self, obj, **dehydrate_kwargs):
         values = self.dehydrate(obj, with_primary_key=False, **dehydrate_kwargs)
         if not values:
             return
-        return SQL.update(self.table, values).where(self.primary_key_condition(self.get_primary_key(obj)))
+        return SQL.update(self.table, values).where(
+            self.primary_key_condition(self.get_primary_key(obj))
+        )
 
     def delete(self, obj):
         pk = self.get_primary_key(obj)
         if not pk:
             return
         return SQL.delete_from(self.table).where(self.primary_key_condition(pk))
-    
+
     def __repr__(self):
         return f"<Mapper({self.table} -> {self.object_class.__name__})>"
-    
+
 
 class MapperColumnList(ColumnList):
     def __init__(self, mapper):
         super().__init__([], wildcard=None)
         self.mapper = mapper
-    
+
     def get(self, name):
         for col in self:
             if col.name == name:
@@ -263,13 +313,23 @@ class MapperColumnList(ColumnList):
 
 
 class MappedColumnMixin:
-    """Reprensents a mapped column.
-    """
-    attribute: str # will be provided by Mapper when added to it
-    mapper: Mapper # will be provided by Mapper when added to it
+    """Reprensents a mapped column."""
 
-    def __init__(self, name, type=None, primary_key=False, nullable=True, default=unknown_value,
-                 references=None, unique=False, lazy=False, attribute=None):
+    attribute: str  # will be provided by Mapper when added to it
+    mapper: Mapper  # will be provided by Mapper when added to it
+
+    def __init__(
+        self,
+        name,
+        type=None,
+        primary_key=False,
+        nullable=True,
+        default=unknown_value,
+        references=None,
+        unique=False,
+        lazy=False,
+        attribute=None,
+    ):
         self.name = name
         self.table = None
         self.alias = None
@@ -293,13 +353,13 @@ class MappedColumnMixin:
                 return self.type.dumper(value)
             return value
         return unknown_value
-        
+
     def dump(self, obj, values):
         """Dumps the value from the object in the values dict under the column name if the attribute exists on the object"""
         value = self.get(obj)
         if value is not unknown_value:
             values[self.name] = value
-        
+
     def load(self, obj, values):
         """Sets the object attribute from the database row, using the provided load function if needed
         (used by Mapper.hydrate())
@@ -327,11 +387,22 @@ class ColumnExpr(MappedColumnMixin, SQLColumnExpr):
 
 
 class Relationship:
-    attribute: str # will be provided by Mapper when added to it
-    mapper: Mapper # will be provided by Mapper when added to it
+    attribute: str  # will be provided by Mapper when added to it
+    mapper: Mapper  # will be provided by Mapper when added to it
 
-    def __init__(self, target_mapper, target_col=None, target_attr=None, source_col=None, source_attr=None,
-                 join_type="LEFT JOIN", join_condition=None, select_cols=None, single=False, lazy=True):
+    def __init__(
+        self,
+        target_mapper,
+        target_col=None,
+        target_attr=None,
+        source_col=None,
+        source_attr=None,
+        join_type="LEFT JOIN",
+        join_condition=None,
+        select_cols=None,
+        single=False,
+        lazy=True,
+    ):
         self._target_mapper = target_mapper
         self.target_col = target_col
         self._target_attr = target_attr
@@ -347,11 +418,11 @@ class Relationship:
     def target_mapper(self) -> Mapper:
         # using @property to allow override in subclasses
         return self._target_mapper
-    
+
     @property
     def target_table(self):
         return self.target_mapper.table
-    
+
     @property
     def target_attr(self):
         if self._target_attr:
@@ -359,11 +430,11 @@ class Relationship:
         if self.target_col in self.target_mapper.columns:
             return self.target_mapper.columns[self.target_col].attribute
         return self.target_col
-    
+
     @property
     def source_table(self):
         return self.mapper.table
-    
+
     @property
     def source_col(self):
         if self._source_col:
@@ -371,7 +442,7 @@ class Relationship:
         if self.mapper.primary_key:
             return self.mapper.primary_key.name
         return "id"
-    
+
     @property
     def source_attr(self):
         if self._source_attr:
@@ -379,7 +450,7 @@ class Relationship:
         if self.source_col in self.mapper.columns:
             return self.mapper.columns[self.source_col].attribute
         return self.source_col
-    
+
     @property
     def columns(self):
         if self.select_cols:
@@ -387,50 +458,66 @@ class Relationship:
         else:
             cols = self.target_mapper.eager_columns
         return cols.aliased_table(self.target_table).prefixed(f"{self.attribute}__")
-    
+
     def __getattr__(self, name):
         return self.target_mapper.columns.aliased_table(self.target_table)[name]
-    
+
     def join_condition(self, target_alias=None, source_alias=None) -> SQL:
         if not target_alias:
             target_alias = self.target_table
         if not source_alias:
             source_alias = self.source_table
         if isinstance(self._join_condition, str):
-            return SQLTemplate(str(self._join_condition), {
-                source_alias: source_alias,
-                target_alias: target_alias
-            })
+            return SQLTemplate(
+                str(self._join_condition), {source_alias: source_alias, target_alias: target_alias}
+            )
         elif self._join_condition:
             return self._join_condition
         if not self.target_col:
             raise MapperError(f"Missing target_col on relationship '{self.attribute}'")
-        return SQL.Col(self.target_col, table=target_alias) == SQL.Col(self.source_col, table=source_alias)
-    
+        return SQL.Col(self.target_col, table=target_alias) == SQL.Col(
+            self.source_col, table=source_alias
+        )
+
     def join_clause(self, target_alias=None, source_alias=None):
-        return SQL(self.join_type, SQL.Id(self.target_table, target_alias), "ON",
-                   self.join_condition(target_alias, source_alias))
-    
+        return SQL(
+            self.join_type,
+            SQL.Id(self.target_table, target_alias),
+            "ON",
+            self.join_condition(target_alias, source_alias),
+        )
+
     def select_from_target(self, source_obj):
-        """Returns the select statement used to retrieve objects from the target
-        """
+        """Returns the select statement used to retrieve objects from the target"""
         source_attr = self.source_attr
         if self._join_condition:
-            return self.target_mapper.select_from(table_alias=self.target_table).join(self.source_table).on(self.join_condition())\
-                    .where(SQL.Col(self.source_col, self.source_table) == SQL.Param(getattr(source_obj, source_attr)))
+            return (
+                self.target_mapper.select_from(table_alias=self.target_table)
+                .join(self.source_table)
+                .on(self.join_condition())
+                .where(
+                    SQL.Col(self.source_col, self.source_table)
+                    == SQL.Param(getattr(source_obj, source_attr))
+                )
+            )
         if not self.target_col:
             raise MapperError(f"Missing target_col on relationship '{self.attribute}'")
-        return self.target_mapper.select_from().where(SQL.Col(self.target_col) == SQL.Param(getattr(source_obj, source_attr)))
-    
+        return self.target_mapper.select_from().where(
+            SQL.Col(self.target_col) == SQL.Param(getattr(source_obj, source_attr))
+        )
+
     def delete_from_target(self, source_obj):
-        """Returns a delete statement to delete all related rows in the target
-        """
+        """Returns a delete statement to delete all related rows in the target"""
         source_attr = self.source_attr
         if self._join_condition:
-            return SQL.delete_from(self.target_table).where(self.target_mapper.primary_key.in_(self.select_from_target(source_obj)))
+            return SQL.delete_from(self.target_table).where(
+                self.target_mapper.primary_key.in_(self.select_from_target(source_obj))
+            )
         if not self.target_col:
             raise MapperError(f"Missing target_col on relationship '{self.attribute}'")
-        return SQL.delete_from(self.target_table).where(SQL.Col(self.target_col) == SQL.Param(getattr(source_obj, source_attr)))
+        return SQL.delete_from(self.target_table).where(
+            SQL.Col(self.target_col) == SQL.Param(getattr(source_obj, source_attr))
+        )
 
     def __repr__(self):
         return f"<Relationship({self.attribute})>"
@@ -449,7 +536,10 @@ class HydrationMap(CompositionMap):
         if not isinstance(mapper, Mapper):
             mapper = Mapper.from_class(mapper)
         rowid = mapper.primary_key.name if mapper.primary_key else None
-        _nested = {r.attribute: HydrationMap(r.target_mapper, single=r.single) for r in mapper.relationships}
+        _nested = {
+            r.attribute: HydrationMap(r.target_mapper, single=r.single)
+            for r in mapper.relationships
+        }
         if nested:
             _nested.update({k: HydrationMap.create(v) for k, v in nested.items()})
         super().__init__(mapper.hydrate_new, _nested, rowid, single)

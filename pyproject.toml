@@ -28,4 +28,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 include = ["sqlorm/**/*.py"]
+line-length = 100
+
+[tool.ruff.lint]
 exclude = ["sqlorm/__init__.py"]

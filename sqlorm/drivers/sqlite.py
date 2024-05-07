@@ -1,5 +1,5 @@
 import sqlite3
-from sqlite3 import * #noqa
+from sqlite3 import *  # noqa
 
 
 # Fine tune sqlite for highly concurrent workloads like web servers
@@ -7,10 +7,10 @@ from sqlite3 import * #noqa
 FINE_TUNED_PRAGMAS = {
     "journal_mode": "WAL",
     "synchronous": "NORMAL",
-    "journal_size_limit": "67108864", # 64mb
-    "mmap_size": "134217728", # 128mb
+    "journal_size_limit": "67108864",  # 64mb
+    "mmap_size": "134217728",  # 128mb
     "cache_size": "2000",
-    "busy_timeout": "5000"
+    "busy_timeout": "5000",
 }
 
 
@@ -19,7 +19,7 @@ def connect(*args, **kwargs):
     extensions = kwargs.pop("ext", None)
     fine_tune = kwargs.pop("fine_tune", False)
 
-    kwargs.setdefault("check_same_thread", False) # better default to work with sqlorm pooling
+    kwargs.setdefault("check_same_thread", False)  # better default to work with sqlorm pooling
     conn = sqlite3.connect(*args, **kwargs)
     conn.row_factory = sqlite3.Row
 
@@ -36,4 +36,3 @@ def connect(*args, **kwargs):
             conn.execute(f"SELECT load_extension('{ext}')")
 
     return conn
-

@@ -1,8 +1,6 @@
-
 class ResultSet:
-    """Wraps a cursor and fetches row that can be processed with a loader
-    """
-    
+    """Wraps a cursor and fetches row that can be processed with a loader"""
+
     def __init__(self, cursor, loader=None, auto_close_cursor=True):
         self.cursor = cursor
         self.loader = loader
@@ -12,7 +10,7 @@ class ResultSet:
         if self.cursor:
             self.cursor.close()
             self.cursor = None
-    
+
     def fetch(self, with_loader=True):
         if not self.cursor:
             return
@@ -24,20 +22,20 @@ class ResultSet:
         if with_loader and self.loader:
             return self.loader(row)
         return row
-    
+
     def first(self, with_loader=True):
         row = self.fetch(with_loader=with_loader)
         if self.auto_close_cursor:
             self.close()
         return row
-    
+
     def scalar(self):
         row = self.first(with_loader=False)
         return row[row.keys()[0]]
-    
+
     def scalars(self):
         return [row[row.keys()[0]] for row in self]
-    
+
     def all(self):
         if self.loader:
             return list(self.__iter__())
@@ -55,11 +53,10 @@ class ResultSet:
         if row is None:
             raise StopIteration()
         return row
-    
+
 
 class CompositionMap:
-    """Defines how a row is composited
-    """
+    """Defines how a row is composited"""
 
     @classmethod
     def create(cls, spec):
@@ -137,11 +134,11 @@ class CompositeResultSet(ResultSet):
                 if self.current:
                     return self.current.compile(with_loader=with_loader)
                 return
-            
+
             if self.disable_composition:
                 # skip processing the row as no composition was detected previously
                 return self.map.loader(row) if with_loader and self.map.loader else row
-            
+
             row = CompositeRow(row, self.map, self.separator)
             if self.current is None:
                 if not row.is_composite:
@@ -153,15 +150,15 @@ class CompositeResultSet(ResultSet):
                 current = self.current.compile(with_loader=with_loader)
                 self.current = row
                 return current
-    
+
     def all(self):
-        # must go through our custom fetching logic
+        # must go through our custom fetching logic
         return list(self.__iter__())
 
 
 class CompositeRowError(Exception):
     pass
-        
+
 
 class CompositeRow:
     def __init__(self, row, map: CompositionMap, separator="__", nested=None):
@@ -190,7 +187,7 @@ class CompositeRow:
 
         self.nested = {}
         for k, v in nested.items():
-            if v is None: # skip nested rows where all columns are null
+            if v is None:  # skip nested rows where all columns are null
                 continue
             self.nested[k] = [CompositeRow(v[0], map.get(k), separator, v[1])]
 

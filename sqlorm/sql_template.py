@@ -12,12 +12,12 @@ class EvalBlock(SQLStr):
 
     def _render(self, params):
         return eval(self.code, self.template.eval_globals, self.template.locals)
-    
+
 
 class ParametrizedEvalBlock(EvalBlock):
     def _render(self, params):
         return params.add(super()._render(params))
-    
+
 
 class SQLTemplateError(Exception):
     pass
@@ -41,16 +41,9 @@ class SQLTemplate(SQL):
         assert params == [1]
     """
 
-    eval_globals = {
-        "SQL": SQL,
-        "datetime": datetime,
-        "uuid": uuid
-    }
+    eval_globals = {"SQL": SQL, "datetime": datetime, "uuid": uuid}
 
-    eval_blocks = [
-        ("{", "}", EvalBlock),
-        ("%(", ")s", ParametrizedEvalBlock)
-    ]
+    eval_blocks = [("{", "}", EvalBlock), ("%(", ")s", ParametrizedEvalBlock)]
 
     def __init__(self, stmt, locals=None):
         self.locals = locals if locals is not None else {}
@@ -67,7 +60,11 @@ class SQLTemplate(SQL):
 
             is_eval = False
             for start, end, eval_callback in self.eval_blocks:
-                if (not eval_block or eval_block == start) and len(stmt) >= i+len(start)-1 and stmt[i:i+len(start)] == start:
+                if (
+                    (not eval_block or eval_block == start)
+                    and len(stmt) >= i + len(start) - 1
+                    and stmt[i : i + len(start)] == start
+                ):
                     if eval_block:
                         nestedc += 1
                         code += start
@@ -77,7 +74,11 @@ class SQLTemplate(SQL):
                         nestedc = 0
                     i += len(start) - 1
                     is_eval = True
-                elif eval_block == start and len(stmt) >= i+len(end)-1 and stmt[i:i+len(end)] == end:
+                elif (
+                    eval_block == start
+                    and len(stmt) >= i + len(end) - 1
+                    and stmt[i : i + len(end)] == end
+                ):
                     if nestedc > 0:
                         nestedc -= 1
                         code += end

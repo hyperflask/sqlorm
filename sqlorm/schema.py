@@ -39,17 +39,42 @@ def create_all(model_registry=None, engine=None, check_missing=False, logger=Non
 def create_table(mapper, default_type="varchar"):
     if not isinstance(mapper, Mapper):
         mapper = Mapper.from_class(mapper)
-    return SQL("CREATE TABLE", mapper.table, SQL.Tuple([
-        SQL(c.name, c.type.sql_type if c.type else default_type,
-            "UNIQUE" if c.unique else "",
-            "NOT NULL" if not c.nullable else "",
-            "PRIMARY KEY" if c.primary_key else "",
-            SQL("REFERENCES", f"{c.references.table} ({c.references.name})" if isinstance(c.references, SQL.Col) else c.references) if c.references else "")
-        for c in mapper.columns
-    ]))
+    return SQL(
+        "CREATE TABLE",
+        mapper.table,
+        SQL.Tuple(
+            [
+                SQL(
+                    c.name,
+                    c.type.sql_type if c.type else default_type,
+                    "UNIQUE" if c.unique else "",
+                    "NOT NULL" if not c.nullable else "",
+                    "PRIMARY KEY" if c.primary_key else "",
+                    SQL(
+                        "REFERENCES",
+                        f"{c.references.table} ({c.references.name})"
+                        if isinstance(c.references, SQL.Col)
+                        else c.references,
+                    )
+                    if c.references
+                    else "",
+                )
+                for c in mapper.columns
+            ]
+        ),
+    )
 
 
-def migrate(path="migrations", from_version=None, to_version=None, use_schema_version=True, save_version_after_step=False, logger=None, dryrun=False, engine=None):
+def migrate(
+    path="migrations",
+    from_version=None,
+    to_version=None,
+    use_schema_version=True,
+    save_version_after_step=False,
+    logger=None,
+    dryrun=False,
+    engine=None,
+):
     logger = logging.getLogger("sqlorm") if logger is True else logger
     with ensure_transaction(engine):
         if from_version is None and use_schema_version:
@@ -114,7 +139,9 @@ def set_schema_version(version, engine=None):
         try:
             tx.execute(SQL.update("schema_version", {"version": version}))
         except Exception:
-            tx.execute((
-                "CREATE TABLE schema_version (version text)",
-                SQL.insert("schema_version", {"version": version})
-            ))
+            tx.execute(
+                (
+                    "CREATE TABLE schema_version (version text)",
+                    SQL.insert("schema_version", {"version": version}),
+                )
+            )

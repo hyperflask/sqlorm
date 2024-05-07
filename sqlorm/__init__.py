@@ -1,5 +1,14 @@
-from .engine import Engine, EngineError, Session, SessionError, Transaction, get_current_session,\
-                    ensure_session, ensure_transaction, transaction
+from .engine import (
+    Engine,
+    EngineError,
+    Session,
+    SessionError,
+    Transaction,
+    get_current_session,
+    ensure_session,
+    ensure_transaction,
+    transaction,
+)
 from .sql import SQL, ParametrizedStmt
 from .sql_template import SQLTemplate
 from .sqlfunc import fetchall, fetchone, fetchscalar, fetchscalars, update, execute, sqlfunc

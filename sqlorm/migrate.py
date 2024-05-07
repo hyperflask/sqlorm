@@ -19,12 +19,14 @@ def main(argv=None):
 
     logging.info(f"Connecting to {args.engine_uri}")
     with Engine.from_uri(args.engine_uri):
-        migrate(args.path,
-                from_version=args.from_version,
-                to_version=args.to_version,
-                use_schema_version=not args.ignore_schema_version,
-                dryrun=args.dryrun,
-                logger=logging)
+        migrate(
+            args.path,
+            from_version=args.from_version,
+            to_version=args.to_version,
+            use_schema_version=not args.ignore_schema_version,
+            dryrun=args.dryrun,
+            logger=logging,
+        )
 
 
 if __name__ == "__main__":

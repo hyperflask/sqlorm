@@ -34,7 +34,7 @@ class Engine:
         engine = cls.from_dbapi(module, *args, **_kwargs)
         engine.connection_factory.uri = uri
         return engine
-    
+
     @classmethod
     def from_dbapi(cls, dbapi, *connect_args, **kwargs):
         logger = kwargs.pop("logger", None)
@@ -50,13 +50,21 @@ class Engine:
 
         def connect(dbapi):
             return dbapi.connect(*connect.args, **connect.kwargs)
+
         connect.args = connect_args
         connect.kwargs = kwargs
 
         return Engine(dbapi, connect, logger, logger_level, pool, max_pool_conns)
 
-    def __init__(self, dbapi, connection_factory, logger=None, logger_level="debug",
-                 pool=True, max_pool_conns=10):
+    def __init__(
+        self,
+        dbapi,
+        connection_factory,
+        logger=None,
+        logger_level="debug",
+        pool=True,
+        max_pool_conns=10,
+    ):
         self.dbapi = dbapi
         self.connection_factory = connection_factory
         self.logger = logging.getLogger("sqlorm") if logger is True else logger
@@ -68,17 +76,17 @@ class Engine:
     def connect(self, from_pool=True):
         if not from_pool or self.pool is False:
             return self.connection_factory(self.dbapi)
-        
+
         if self.pool:
             conn = self.pool.pop(0)
         elif not self.max_pool_conns or len(self.active_conns) < self.max_pool_conns:
             conn = self.connection_factory(self.dbapi)
         else:
             raise EngineError("Max number of connections reached")
-        
+
         self.active_conns.append(conn)
         return conn
-    
+
     def disconnect(self, conn, force=False):
         if conn in self.active_conns:
             self.active_conns.remove(conn)
@@ -90,7 +98,7 @@ class Engine:
             conn.close()
         else:
             raise EngineError("Cannot close connection which is not part of pool")
-        
+
     def disconnect_all(self):
         if self.pool is False:
             return
@@ -114,7 +122,7 @@ class Engine:
                 yield session
         finally:
             session.close()
-    
+
     def __enter__(self):
         if session_context.top:
             return session_context.top.__enter__()
@@ -133,9 +141,8 @@ class EngineError(Exception):
 
 
 class _SessionContext:
-    """A per-thread stack of Session to keep track of the current session
-    """
-    
+    """A per-thread stack of Session to keep track of the current session"""
+
     def __init__(self):
         self.locals = threading.local()
 
@@ -149,7 +156,7 @@ class _SessionContext:
     def top(self):
         if self.stack:
             return self.stack[-1]
-        
+
     def push(self, session):
         self.stack.append(session)
 
@@ -174,8 +181,7 @@ def get_current_session():
 
 @contextmanager
 def ensure_session(engine=None):
-    """A context to ensure that a session is available
-    """
+    """A context to ensure that a session is available"""
     if session_context.top:
         yield session_context.top
     elif engine:
@@ -187,8 +193,7 @@ def ensure_session(engine=None):
 
 @contextmanager
 def ensure_transaction(engine=None, virtual=True):
-    """A context to ensure that a session is available and provide a transaction
-    """
+    """A context to ensure that a session is available and provide a transaction"""
     with ensure_session(engine) as sess:
         ctx = sess.virtual_tx_ctx() if virtual else sess
         with ctx as tx:
@@ -202,18 +207,19 @@ def transaction(engine=None):
 class Session:
     """Wraps a DBAPI Connection object
 
-        sess = Session(conn)
-        with sess as tx:
-            tx.execute()
-            # commit
-        sess.close()
-    
-        sess = Session(conn, virtual_tx=True)
-        with sess as tx:
-            tx.execute()
-        sess.commit()
-        sess.close()
+    sess = Session(conn)
+    with sess as tx:
+        tx.execute()
+        # commit
+    sess.close()
+
+    sess = Session(conn, virtual_tx=True)
+    with sess as tx:
+        tx.execute()
+    sess.commit()
+    sess.close()
     """
+
     def __init__(self, dbapi_conn=None, auto_close_conn=None, virtual_tx=False, engine=None):
         if not dbapi_conn and not engine:
             raise SessionError("Session(): dbapi_conn or engine must be provided")
@@ -274,7 +280,7 @@ class Session:
         virtual = virtual or self.virtual_tx or bool(self.transactions)
         self.transactions.append(Transaction(self.conn, virtual, self.engine))
         return self.transactions[-1]
-    
+
     def __exit__(self, exc_type, exc_value, exc_tb):
         tx = self.transactions.pop()
         tx.__exit__(exc_type, exc_value, exc_tb)
@@ -285,7 +291,7 @@ class Session:
     def transaction(self):
         if self.transactions:
             return self.transactions[-1]
-        
+
     @property
     def in_transaction(self):
         return bool(self.transactions)
@@ -340,7 +346,9 @@ class Transaction:
             return cur
         stmt, params = render(stmt, params)
         if self.engine and self.engine.logger:
-            getattr(self.engine.logger, self.engine.logger_level)("%s %s" % (stmt, params) if params else stmt)
+            getattr(self.engine.logger, self.engine.logger_level)(
+                "%s %s" % (stmt, params) if params else stmt
+            )
 
         if params:
             cur.execute(stmt, params)
@@ -354,7 +362,7 @@ class Transaction:
                 self.execute(s)
             return
         self.cursor(stmt, params).close()
-    
+
     def executemany(self, operation, seq_of_parameters):
         cur = self.cursor()
         cur.executemany(str(operation), seq_of_parameters)
@@ -371,9 +379,9 @@ class Transaction:
                 rs.mapper.hydrate(obj, rs.first(with_loader=False))
                 return obj
             return rs
-        
+
         return ResultSet(cursor, loader)
-    
+
     def fetchall(self, stmt, params=None, **fetch_kwargs):
         return self.fetch(stmt, params, **fetch_kwargs).all()
 
@@ -385,15 +393,27 @@ class Transaction:
 
     def fetchscalars(self, stmt, params=None, **fetch_kwargs):
         return self.fetch(stmt, params, **fetch_kwargs).scalars()
-    
-    def fetchcomposite(self, stmt, params=None, loader=None, model=None, nested=None, obj=None, map=None, separator="__"):
+
+    def fetchcomposite(
+        self,
+        stmt,
+        params=None,
+        loader=None,
+        model=None,
+        nested=None,
+        obj=None,
+        map=None,
+        separator="__",
+    ):
         if obj and not model:
             model = obj.__class__
 
         if model:
             map = HydrationMap.create([model, nested])
         elif nested:
-            map = CompositionMap(lambda r: r.values(), {k: HydrationMap.create(v) for k, v in nested.items()})
+            map = CompositionMap(
+                lambda r: r.values(), {k: HydrationMap.create(v) for k, v in nested.items()}
+            )
         elif not map:
             map = CompositionMap.create([loader, nested])
 
@@ -402,7 +422,7 @@ class Transaction:
             map.mapper.hydrate(obj, rs.first(with_loader=False))
             return obj
         return rs
-    
+
     def fetchhydrated(self, model, stmt, params=None, **fetchcomposite_kwargs):
         if not inspect.isclass(model) and not isinstance(model, Mapper):
             if isinstance(model, dict):
