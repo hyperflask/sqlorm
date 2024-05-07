@@ -1,5 +1,5 @@
 import sqlite3
-from sqlite3 import *
+from sqlite3 import * #noqa
 
 
 # Fine tune sqlite for highly concurrent workloads like web servers
@@ -21,7 +21,7 @@ def connect(*args, **kwargs):
 
     kwargs.setdefault("check_same_thread", False) # better default to work with sqlorm pooling
     conn = sqlite3.connect(*args, **kwargs)
-    conn.row_factory = Row
+    conn.row_factory = sqlite3.Row
 
     if fine_tune:
         pragmas.update(FINE_TUNED_PRAGMAS)

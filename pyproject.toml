@@ -25,3 +25,7 @@ mysql-connector-python = "^8.3.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+include = ["sqlorm/**/*.py"]
+exclude = ["sqlorm/__init__.py"]

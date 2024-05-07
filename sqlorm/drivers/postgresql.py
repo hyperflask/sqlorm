@@ -1,4 +1,4 @@
-from psycopg import *
+from psycopg import * #noqa
 from sqlorm.types import SQLType
 from sqlorm.sql import SQL as _SQL, SQLStr
 

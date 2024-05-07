@@ -45,7 +45,7 @@ class Engine:
         if isinstance(dbapi, str):
             try:
                 dbapi = import_module(f"sqlorm.drivers.{dbapi}")
-            except:
+            except Exception:
                 dbapi = import_module(dbapi)
 
         def connect(dbapi):

@@ -1,5 +1,5 @@
 import mysql.connector
-from mysql.connector import *
+from mysql.connector import * #noqa
 
 
 class Connection(mysql.connector.connection.MySQLConnection):

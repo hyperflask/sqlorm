@@ -27,7 +27,7 @@ def create_all(model_registry=None, engine=None, check_missing=False, logger=Non
             with ensure_transaction(engine) as tx:
                 try:
                     tx.execute(model.find_one())
-                except:
+                except Exception:
                     missing = True
         if missing:
             if logger:
@@ -66,7 +66,7 @@ def migrate(path="migrations", from_version=None, to_version=None, use_schema_ve
                 execute_migration(filename, engine)
                 if use_schema_version and save_version_after_step:
                     set_schema_version(version, engine)
-            except:
+            except Exception:
                 if logger:
                     logger.error("Last migration failed, ending")
                 raise
@@ -105,7 +105,7 @@ def get_schema_version(engine=None):
     with ensure_transaction(engine) as tx:
         try:
             return int(tx.fetchscalar("SELECT version FROM schema_version LIMIT 1"))
-        except:
+        except Exception:
             pass
 
 
@@ -113,7 +113,7 @@ def set_schema_version(version, engine=None):
     with ensure_transaction(engine) as tx:
         try:
             tx.execute(SQL.update("schema_version", {"version": version}))
-        except:
+        except Exception:
             tx.execute((
                 "CREATE TABLE schema_version (version text)",
                 SQL.insert("schema_version", {"version": version})

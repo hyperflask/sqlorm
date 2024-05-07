@@ -1,5 +1,3 @@
-import typing as t
-
 
 class ResultSet:
     """Wraps a cursor and fetches row that can be processed with a loader
@@ -197,7 +195,7 @@ class CompositeRow:
             self.nested[k] = [CompositeRow(v[0], map.get(k), separator, v[1])]
 
     def merge(self, other):
-        if self.id is None or (self.id != True and other.id != self.id):
+        if self.id is None or (self.id is not True and other.id != self.id):
             return False
         for k, rows in self.nested.items():
             if not rows[-1].merge(other.nested[k][-1]):
