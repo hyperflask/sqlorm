@@ -363,7 +363,7 @@ class Model(BaseModel, abc.ABC):
     @fetchall
     def find_all(
         cls,
-        _where: t.Optional[str | SQL] = None,
+        _where: t.Optional[t.Union[str, SQL]] = None,
         with_rels=None,
         with_joins=None,
         with_lazy=False,
@@ -383,7 +383,7 @@ class Model(BaseModel, abc.ABC):
     @fetchone
     def find_one(
         cls,
-        _where: t.Optional[str | SQL] = None,
+        _where: t.Optional[t.Union[str, SQL]] = None,
         with_rels=None,
         with_joins=None,
         with_lazy=False,

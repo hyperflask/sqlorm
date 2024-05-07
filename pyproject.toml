@@ -9,15 +9,15 @@ repository = "https://github.com/hyperflask/sqlorm"
 packages = [{include = "sqlorm"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 pytest-cov = "^4.1.0"
+ruff = "^0.4.3"
 
 [tool.poetry.group.postgresql.dependencies]
 psycopg = {extras = ["binary"], version = "^3.1.18"}
-
 
 [tool.poetry.group.mysql.dependencies]
 mysql-connector-python = "^8.3.0"
