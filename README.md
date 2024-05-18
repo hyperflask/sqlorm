@@ -1,6 +1,12 @@
 # sqlorm
 
-SQL-focused Python ORM
+**SQL-focused Python ORM**
+
+![GitHub License](https://img.shields.io/github/license/hyperflask/sqlorm) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hyperflask/sqlorm/python.yml?branch=main) ![Code coverage](https://img.shields.io/badge/coverage-90%25-blue)
+
+ORMs and developers often end up in a love/hate relationship. The advantages of ORMs (the mapping of objects) can be negated by their compromises (have to learn their pseudo sql syntax, less control over the generated sql, low performance).
+
+sqlorm intends to provide a solution where sql stays front and center and where the behavior of the ORM is what you expect and no more.
 
 - Thin layer on top of [DBAPI 2.0](https://peps.python.org/pep-0249/)
 - Use SQL as usual
@@ -11,7 +17,6 @@ SQL-focused Python ORM
 - Supports relationships
 - Built-in SQL based migration system
 - Low coupling between different parts of the library which can be used directly with DBAPI Connections
-- High test coverage (90%)
 - Easy to understand code
 
 Example usage:
@@ -241,7 +246,9 @@ engine = Engine.from_uri("psycopg://?host=localhost&port=5432") # using the dbap
 
 Once initialized, an engine can be used as a context to start sessions.
 
-By default, connections are pooled and re-used. You can disabled this behavior by using `pool=False` in the engine constructor.
+### Pooling
+
+Connections are pooled and re-used by default. You can disabled this behavior by using `pool=False` in the engine constructor.
 `max_pool_conns` can also be used to define the maximum number of connections to start.
 
 ### Drivers
