@@ -2,7 +2,7 @@
 
 **SQL-focused Python ORM**
 
-![GitHub License](https://img.shields.io/github/license/hyperflask/sqlorm) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hyperflask/sqlorm/python.yml?branch=main) ![Code coverage](https://img.shields.io/badge/coverage-90%25-blue)
+![GitHub License](https://img.shields.io/github/license/hyperflask/sqlorm) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/hyperflask/sqlorm/python.yml?branch=main) ![Codecov](https://img.shields.io/codecov/c/github/hyperflask/sqlorm)
 
 ORMs and developers often end up in a love/hate relationship. The advantages of ORMs (the mapping of objects) can be negated by their compromises (have to learn their pseudo sql syntax, less control over the generated sql, low performance).
 
