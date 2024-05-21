@@ -1,0 +1,22 @@
+site_name: sqlorm
+theme: material
+nav:
+  - index.md
+  - engine.md
+  - sessions-and-transactions.md
+  - executing.md
+  - sql-functions.md
+  - models.md
+  - sql-utilities.md
+  - mapper.md
+  - schema.md
+  - drivers.md
+  
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - callouts

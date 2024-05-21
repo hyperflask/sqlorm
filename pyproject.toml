@@ -21,6 +21,8 @@ mysql-connector-python = "^8.3.0"
 pytest = "^8.0.0"
 pytest-cov = "^4.1.0"
 ruff = "^0.4.3"
+mkdocs-material = "^9.5.24"
+mkdocs-callouts = "^1.13.2"
 
 [tool.ruff]
 include = ["sqlorm/**/*.py"]
