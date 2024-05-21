@@ -115,6 +115,8 @@ class Mapper:
 
     def primary_key_condition(self, pk, table_alias=None, prefix=None) -> SQL:
         """Returns the SQL condition to query a single row from this mapped table matching the primary key"""
+        if isinstance(pk, self.object_class):
+            pk = self.get_primary_key(pk)
         cols = self.primary_key
         if isinstance(cols, list):
             if not isinstance(pk, (list, tuple)):
@@ -282,9 +284,7 @@ class Mapper:
         values = self.dehydrate(obj, with_primary_key=False, **dehydrate_kwargs)
         if not values:
             return
-        return SQL.update(self.table, values).where(
-            self.primary_key_condition(self.get_primary_key(obj))
-        )
+        return SQL.update(self.table, values).where(self.primary_key_condition(obj))
 
     def delete(self, obj):
         pk = self.get_primary_key(obj)
