@@ -1,0 +1,1068 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../sql-functions/">
+      
+      
+        <link rel="next" href="../sql-utilities/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.24">
+    
+    
+      
+        <title>Models - sqlorm</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#models" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="sqlorm" class="md-header__button md-logo" aria-label="sqlorm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sqlorm
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Models
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="sqlorm" class="md-nav__button md-logo" aria-label="sqlorm" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    sqlorm
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    The Engine
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sessions-and-transactions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sessions and transactions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../executing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Executing queries
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sql-functions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SQL functions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Models
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Models
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#defining-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defining models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sql-methods-on-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQL methods on models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#querying-model-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Querying model objects
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manipulating-model-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manipulating model objects
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handling-unknown-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Handling unknown columns
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relationships
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#binding-models-to-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Binding models to engines
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model registry
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eager-and-lazy-loading-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Eager and lazy loading columns
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#column-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Column types
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sql-utilities/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SQL utilities
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mapper/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mapping any class
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Managing the schema
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drivers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Drivers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#defining-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defining models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sql-methods-on-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQL methods on models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#querying-model-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Querying model objects
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manipulating-model-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manipulating model objects
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handling-unknown-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Handling unknown columns
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relationships
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#binding-models-to-engines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Binding models to engines
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model registry
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eager-and-lazy-loading-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Eager and lazy loading columns
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#column-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Column types
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="models">Models</h1>
+<p>Any class can be used as a model. However, subclassing sqlorm's <code>Model</code> class provides a number of advantages:</p>
+<ul>
+<li>ActiveRecord style methods to quickly fetch / save the object</li>
+<li>Tracking of dirty attributes to only save attributes that have been modified</li>
+<li>Auto fetching lazy attributes and relationships when accessed</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using classes that do not subclass <code>Model</code>, <code>Mapper.from_class()</code> is used to generate a mapping. See <a href="#mapping-any-class">Mapping any class</a>.</p>
+</div>
+<h2 id="defining-models">Defining models</h2>
+<p>Models are classes inheriting from <code>Model</code>. To define which table they represent, use the <code>table</code> class property.</p>
+<p>To define column mapping, define properties via annotations. The type used will be <a href="#column-types">converted to an sql type</a>.
+For more control over the mapping, you can use instantiate <code>Column()</code> objects:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">Model</span>
+
+<span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="s2">&quot;tasks&quot;</span>
+
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;varchar(20)&quot;</span><span class="p">)</span> <span class="c1"># set the column type (used in create_table())</span>
+    <span class="n">done</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="s2">&quot;completed&quot;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># no annotation, column name is &quot;completed&quot; but property name will be &quot;done&quot;</span>
+</code></pre></div>
+<p>Once columns are defined via annotations or <code>Column</code> properties, they are accessible as class and instance properties.</p>
+<p>As class properties, they can be used as a <a href="#sql-utilities">composable piece of sql</a>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">stmt</span> <span class="o">=</span> <span class="n">SQL</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM tasks WHERE&quot;</span><span class="p">,</span> <span class="n">Task</span><span class="o">.</span><span class="n">done</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<p>As instance properties, they can be get or set like any other property. Lazy loading and dirty flagging is performed accordingly.</p>
+<div class="highlight"><pre><span></span><code><span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="p">()</span>
+<span class="n">task</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;title&quot;</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>To create abstract models which are not meant to be mapped, make sure your class subclasses <code>abc.ABC</code></p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">abc</span>
+
+<span class="k">class</span> <span class="nc">MyBaseModel</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="c1"># ...</span>
+<span class="k">class</span> <span class="nc">MyModel</span><span class="p">(</span><span class="n">MyBaseModel</span><span class="p">):</span>
+    <span class="c1"># ...</span>
+</code></pre></div>
+</div>
+<h2 id="sql-methods-on-models">SQL methods on models</h2>
+<p>Create SQL methods as you would <a href="#sql-functions">SQL functions</a>. Use <code>@classmethod</code> and <code>@staticmethod</code> decorator when needed.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">find_todos</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="s2">&quot;SELECT * FROM tasks WHERE NOT done&quot;</span>
+
+    <span class="k">def</span> <span class="nf">toggle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;UPDATE tasks SET done = NOT done WHERE id = %(self.id)s RETURNING *&quot;</span>
+
+<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">todos</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">find_todos</span><span class="p">()</span> <span class="c1"># SELECT * FROM tasks WHERE NOT done</span>
+
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">toggle</span><span class="p">()</span> <span class="c1"># UPDATE tasks SET done = NOT done WHERE id = 1 RETURNING *</span>
+</code></pre></div>
+<p>By default, the following things happen:</p>
+<ul>
+<li>SELECT statements use <code>fetchhyddrated(Model, ...)</code></li>
+<li>INSERT and UPDATE statements use <code>execute()</code> unless <code>RETURNING</code> is used in the statement,
+  in which case it will update the object with the fetched value (using <code>fetchhydrated(Model, ..., obj=self)</code>)</li>
+<li>DELETE statements use <code>execute()</code></li>
+</ul>
+<p>You can change this default behavior using query decorators: <code>fetchall</code>, <code>fetchone</code>, <code>fetchscalar</code>, <code>fetchscalars</code>, <code>execute</code>, <code>update</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">update</span>
+
+<span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nd">@update</span> <span class="c1"># update the object using the fetched row</span>
+    <span class="k">def</span> <span class="nf">refresh_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;SELECT title FROM tasks WHERE id = %(self.id)s&quot;</span>
+
+<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">refresh_title</span><span class="p">()</span> <span class="c1"># SELECT title FROM tasks WHERE id = 1</span>
+    <span class="k">assert</span> <span class="n">task</span><span class="o">.</span><span class="n">title</span>
+</code></pre></div>
+<p>Because the <em>SELECT FROM</em> part of the query can be auto generated by sqlorm based on your model definition,
+you can start statements with <em>SELECT WHERE</em> directly.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">find_todos</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="s2">&quot;SELECT WHERE NOT done&quot;</span>
+</code></pre></div>
+<p>Similarly:</p>
+<ul>
+<li><code>INSERT INTO (col1) VALUES (%(value)s)</code> will be transformed to <code>INSERT INTO {table} (...</code></li>
+<li><code>UPDATE SET col = %(value)s</code> to <code>UPDATE {table} SET ...</code></li>
+<li><code>DELETE WHERE ...</code> to <code>DELETE FROM {table} WHERE ...</code></li>
+<li><code>WHERE SELF</code> to <code>WHERE {self.__mapper__.primary_key_condition(self)}</code></li>
+</ul>
+<p>You can also create methods using query decorators directly:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">fetchall</span><span class="p">,</span> <span class="n">update</span><span class="p">,</span> <span class="n">SQL</span>
+
+<span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+    <span class="nd">@fetchall</span>
+    <span class="k">def</span> <span class="nf">find_todos</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">select_from</span><span class="p">()</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">done</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@update</span>
+    <span class="k">def</span> <span class="nf">toggle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SQL</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;done&quot;</span><span class="p">:</span> <span class="n">SQL</span><span class="p">(</span><span class="s2">&quot;not done&quot;</span><span class="p">)})</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Using <code>select_from()</code> also ensures that the column list, lazy and eager loading are respected.</p>
+</div>
+<h2 id="querying-model-objects">Querying model objects</h2>
+<p>Models can be used like any other classes with the <code>model</code> argument of the fetch api.
+However, <code>Model</code> also exposes easier to use ways to fetch data using without the need of explicitely passing a transaction.
+When called out of a transaction context, a non commited transaction will automatically be started. If bound to an engine,
+these class methods can also be called out of a session context.</p>
+<ul>
+<li><code>query()</code> executes the provided statement using <a href="#fetching-composite-objects"><code>fetchhydrated()</code></a></li>
+<li><code>find_all()</code> constructs a select statement based on the provided arguments and executes using <code>query()</code></li>
+<li><code>find_one()</code> same as <code>find_all()</code> but only returns the first row</li>
+<li><code>get()</code> to find one row by primary key</li>
+</ul>
+<p>The two finder methods can take as argument a where condition (sql string) or keyword arguments representing attributes to filter by.</p>
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">todos</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM tasks WHERE NOT done&quot;</span><span class="p">)</span>
+    <span class="n">todos</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;NOT done&quot;</span><span class="p">)</span>
+    <span class="n">todos</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">Task</span><span class="o">.</span><span class="n">done</span><span class="o">==</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">todos</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">done</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s2">&quot;id=1&quot;</span><span class="p">)</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can also build select statement with auto populated column list and from clause using <code>Model.select_from()</code>.</p>
+</div>
+<p>Mapped columns can easily be used as <a href="#sql-utilities">pieces of composable sql</a>: accessing the class attribute representing
+the column returns an <a href="#manage-list-of-sql-pieces"><code>SQL.Col</code> object</a> that can be used with python operators to return
+sql conditions:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">todos</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">Task</span><span class="o">.</span><span class="n">done</span><span class="o">==</span><span class="kc">False</span> <span class="o">&amp;</span> <span class="n">Task</span><span class="o">.</span><span class="n">created_at</span><span class="o">&lt;</span><span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">())</span>
+</code></pre></div>
+<h2 id="manipulating-model-objects">Manipulating model objects</h2>
+<p>Manipulate model objects as you would with any python objects. The following methods help you execute DML statements:</p>
+<ul>
+<li><code>save()</code> executes <code>insert()</code> or <code>update()</code> depending on the fact that the object has a primary key or not</li>
+<li><code>insert()</code> executes an insert statement</li>
+<li><code>update()</code> executes an update statement</li>
+<li><code>delete()</code> deletes a delete statement</li>
+<li><code>refresh()</code> executes a select statement (same as <code>get()</code>) and updates the object attribute values</li>
+<li><code>create()</code> a class method to create and insert an object in one line</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>DML (Data Manipulation Language) statements are the statement that modify data in the database (insert, update and delete mostly)</p>
+</div>
+<p>The data used to insert or update will be limited to "dirty" attributes, which means attributes that have been
+modified since the last DML statement. Setting an attribute will automatically flag it as dirty.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">is_dirty</span>
+
+<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;my task&quot;</span><span class="p">)</span> <span class="c1"># INSERT INTO tasks (title) VALUES (&#39;my task&#39;)</span>
+
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="p">()</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;my task&quot;</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> <span class="c1"># INSERT INTO tasks (title) VALUES (&#39;my task&#39;)</span>
+    <span class="c1"># same as task.insert()</span>
+
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;renamed task&quot;</span>
+    <span class="k">assert</span> <span class="n">is_dirty</span><span class="p">(</span><span class="n">task</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> <span class="c1"># UPDATE tasks SET title = &#39;renamed task&#39; WHERE id = 1</span>
+    <span class="c1"># same as task.update()</span>
+
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span> <span class="c1"># DELETE FROM tasks WHERE id = 2</span>
+
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="p">()</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span> <span class="c1"># SELECT * FROM tasks WHERE id = 1</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can also manually flag an attribute as dirty using <code>flag_dirty_attr(obj, attr)</code>.
+Dirty attributes are stored in the object's <code>__dirty__</code> attribute.</p>
+</div>
+<p>If you do not wish to use dirty tracking, you can disable it in the model definition:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">MyBaseModel</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">insert_update_dirty_only</span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Which engine is used when manipulating models entirely depends on the
+current session context. Additionnally, sqlorm do not track objects globally.<br />
+This means objects can be serialized easily and re-used in other sessions without any
+concept of "attaching them" etc...</p>
+<p>As a result, you can easily move objects from one engine to another:</p>
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">engine1</span><span class="p">:</span>
+   <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># SELECT * FROM tasks WHERE id=1</span>
+<span class="k">with</span> <span class="n">engine2</span><span class="p">:</span>
+   <span class="n">task</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span> <span class="c1"># INSERT INTO tasks (id, ...) VALUES (1, ...)</span>
+</code></pre></div>
+</div>
+<h2 id="handling-unknown-columns">Handling unknown columns</h2>
+<p>By default, unknown columns (ones which are not mapped), will be set as attributes on the object.
+Dirty attributes which are not mapped will also be saved in DML statements.</p>
+<p>You can thus create models with no mapped columns. However, models require a primary key to function properly.
+One will be automatically added when non are defined (named "id").</p>
+<p>When no columns are mapped, <code>SELECT *</code> is used.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="s2">&quot;tasks&quot;</span>
+
+<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">done</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># SELECT * FROM tasks WHERE done = false</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">title</span><span class="p">)</span> <span class="c1"># works</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;renamed task&quot;</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">save</span><span class="p">()</span> <span class="c1"># UPDATE tasks SET title = &#39;renamed task&#39; WHERE id = 1</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><code>ModelClass.c</code> is a shorthand to access the mapper columns (<code>ModelClass.__mapper__.columns</code>).
+When unknown columns are allowed, you can use any attributes to get a column object to build queries.</p>
+<div class="highlight"><pre><span></span><code><span class="n">todos</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">Task</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">done</span><span class="o">==</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>You should not disable dirty tracking when allowing unknown columns otherwise setting attributes
+will not result in them being used in DML statements unless they are mapped.<br />
+When dirty tracking is disabled and you are using unknown attributes, the only way sqlorm keeps
+track of them is through the <a href="#dehydrating-objects"><code>__hydrated_attrs__</code> attribute</a>.</p>
+</div>
+<p>You can disallow unknown columns</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">MyBaseModel</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">allow_unknown_columns</span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div>
+<p>Or change the default primary key name:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">MyBaseModel</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">auto_primary_key</span> <span class="o">=</span> <span class="s2">&quot;uid&quot;</span> <span class="c1"># or False to disable auto creating primary key</span>
+</code></pre></div>
+<h2 id="relationships">Relationships</h2>
+<p>Define relationships on models using <code>Relationship(target_model, target_column, source_column)</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">Relationship</span>
+
+<span class="k">class</span> <span class="nc">Post</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">comments</span> <span class="o">=</span> <span class="n">Relationship</span><span class="p">(</span><span class="s2">&quot;Comment&quot;</span><span class="p">,</span> <span class="s2">&quot;post_id&quot;</span><span class="p">)</span> <span class="c1"># target model can be a string if not yet defined, default source column is the primary key</span>
+
+<span class="k">class</span> <span class="nc">Comment</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">post</span> <span class="o">=</span> <span class="n">Relationship</span><span class="p">(</span><span class="n">Post</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;post_id&quot;</span><span class="p">,</span> <span class="n">single</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># use single=True for many-to-one relationships</span>
+
+<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">post</span><span class="o">.</span><span class="n">comments</span><span class="p">:</span> <span class="c1"># SELECT executed now to load comments</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">comment</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">Comment</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">comment</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">slug</span><span class="p">)</span> <span class="c1"># SELECT executed now to load post</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are no notion of backref like you may find in other ORMs. I prefer the explicit nature of declaring the relationship both ways</p>
+</div>
+<p>The list of objects when not using single=True is not a normal python list. It can be iterated over and accessed through brackets.
+However, it only contains 2 methods to modify the list: append and remove. These methods will set the attribute on the related object.
+It will <strong>not</strong> save the object.</p>
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">Comment</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+    <span class="n">post</span><span class="o">.</span><span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span> <span class="c1"># set comment.post_id</span>
+    <span class="n">comment</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</code></pre></div>
+<p>By default, relationships are always lazy loaded. Eager loading is possible by setting <code>lazy=False</code> or using <code>with_rels</code> in finder methods.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Comment</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">post</span> <span class="o">=</span> <span class="n">Relationship</span><span class="p">(</span><span class="s2">&quot;Post&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;post_id&quot;</span><span class="p">,</span> <span class="n">single</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># add lazy=False</span>
+
+<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">Comment</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># SELECT comments.*, posts.id as posts__id, posts.slug as posts__slug, ... FROM comments LEFT JOIN posts ON posts.id = comments.post_id</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">slug</span> <span class="c1"># no statement executed, already loaded</span>
+
+    <span class="n">post</span> <span class="o">=</span> <span class="n">Post</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_rels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;comments&quot;</span><span class="p">])</span> <span class="c1"># will load comments through the composite row mechanism</span>
+    <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">post</span><span class="o">.</span><span class="n">comments</span><span class="p">:</span> <span class="c1"># no statement executed, already loaded</span>
+        <span class="c1"># ...</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Use <code>with_rels=False</code> to prevent eager loading relationships</p>
+</div>
+<p>Sometimes you want to query through relationships but not load the related objects. Use <code>with_joins</code> similarly as <code>with_rels</code> but it will
+only add the join clauses. You can also access attributes through the relationship object to get properly table aliased columns:</p>
+<div class="highlight"><pre><span></span><code><span class="n">comments</span> <span class="o">=</span> <span class="n">Comment</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">Comment</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">slug</span><span class="o">==</span><span class="s2">&quot;slug&quot;</span><span class="p">,</span> <span class="n">with_joins</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;post&quot;</span><span class="p">])</span> <span class="c1"># SELECT comments.* FROM comments LEFT JOIN posts ON posts.id = comments.post_id WHERE posts.slug == &#39;slug&#39;</span>
+<span class="n">comments</span> <span class="o">=</span> <span class="n">Comment</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Comment</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">with_joins</span><span class="o">=</span><span class="p">[</span><span class="n">Comment</span><span class="o">.</span><span class="n">post</span><span class="p">])</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Comment</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">slug</span><span class="o">==</span><span class="s2">&quot;slug&quot;</span><span class="p">))</span> <span class="c1"># alternative</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The join clause is customizable using <code>join_type</code> and <code>join_condition</code></p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Post</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+   <span class="n">comments</span> <span class="o">=</span> <span class="n">Relationship</span><span class="p">(</span><span class="s2">&quot;Comment&quot;</span><span class="p">,</span> <span class="s2">&quot;post_id&quot;</span><span class="p">,</span>
+       <span class="n">join_condition</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{target_alias}</span><span class="s2">.post_id = </span><span class="si">{source_alias}</span><span class="s2">.id AND NOT </span><span class="si">{target_alias}</span><span class="s2">.archived&quot;</span><span class="p">)</span> <span class="c1"># an sql template with 2 special locals: target_alias and source_alias</span>
+
+<span class="k">class</span> <span class="nc">Comment</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+   <span class="n">post</span> <span class="o">=</span> <span class="n">Relationship</span><span class="p">(</span><span class="n">Post</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;post_id&quot;</span><span class="p">,</span> <span class="n">single</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">join_type</span><span class="o">=</span><span class="s2">&quot;INNER JOIN&quot;</span><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are no support for many-to-many relationships for now</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>sqlorm does not handle deleting related objects when the parent is deleted. Use cascading rules in your table definitions.</p>
+</div>
+<h2 id="binding-models-to-engines">Binding models to engines</h2>
+<p>Unless bound to a specific engine, models will need a session context to execute statements.
+When bound to an engine, a non-commiting session is automatically created to execute statements.</p>
+<p>To bind models to an engine, create a new base model class using <code>Model.bind()</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Model</span> <span class="o">=</span> <span class="n">Model</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="n">tasks</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">find_all</span><span class="p">()</span> <span class="c1"># works without a session context</span>
+</code></pre></div>
+<p>You can also bind a model to an engine by simply setting its <code>__engine__</code> class attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While binding engine to models is possible, it is not the preferred way to use sqlorm</p>
+</div>
+<h2 id="model-registry">Model registry</h2>
+<p>When defining models using the <code>Model</code> class, the model classes are registered in a model registry
+available under <code>Model.__model_registry__</code>.</p>
+<p>Using <code>Model.bind()</code> will create a new registry only for the subclasses of this new base class.</p>
+<p>You can reference models in your sql methods:</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Post</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">list_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;SELECT * FROM </span><span class="si">{Comment.table}</span><span class="s2"> WHERE </span><span class="si">{Comment.post_id}</span><span class="s2"> = %(self.id)&quot;</span>
+
+<span class="k">class</span> <span class="nc">Comment</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="k">pass</span>
+</code></pre></div>
+<h2 id="eager-and-lazy-loading-columns">Eager and lazy loading columns</h2>
+<p>Sometime you want to load additional data as part of the querying of objects and other times you want
+to delay loading additional data to when it's actually needed.</p>
+<p>Lazy and eager loading mechanism only apply when using <code>select_from()</code>, <code>find_all()</code>, <code>find_one()</code> and <code>get()</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">lazy_column</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># create lazy groups: all columns of a group are loaded together when one is accessed</span>
+    <span class="n">grouped_lazy_column1</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">lazy</span><span class="o">=</span><span class="s2">&quot;group1&quot;</span><span class="p">)</span>
+    <span class="n">grouped_lazy_column2</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">lazy</span><span class="o">=</span><span class="s2">&quot;group1&quot;</span><span class="p">)</span>
+
+
+<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># lazy columns are not loaded, they weren&#39;t included in the select statement</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">lazy_column</span> <span class="c1"># SELECT lazy_column FROM tasks WHERE id=1</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">grouped_lazy_column1</span> <span class="c1"># SELECT grouped_lazy_column1, grouped_lazy_column2 FROM tasks WHERE id=1</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">grouped_lazy_column2</span> <span class="c1"># no select, already loaded</span>
+</code></pre></div>
+<p>You can eager load lazy fields using <code>with_lazy</code> in query methods:</p>
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">with_lazy</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;group1&quot;</span><span class="p">])</span> <span class="c1"># only load some lazy items (column or group names)</span>
+</code></pre></div>
+<h2 id="column-types">Column types</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      
+    
+  </body>
+</html>
