@@ -1,5 +1,31 @@
 site_name: sqlorm
-theme: material
+repo_url: https://github.com/hyperflask/sqlorm
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      primary: blue grey
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+  features:
+    - content.action.edit
+    - toc.integrate
+  icon:
+    edit: material/pencil
+
 nav:
   - index.md
   - engine.md
@@ -20,3 +46,6 @@ markdown_extensions:
 plugins:
   - search
   - callouts
+  - git-committers:
+      repository: hyperflask/sqlorm
+      branch: main

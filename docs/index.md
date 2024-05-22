@@ -1,5 +1,9 @@
 # Introduction
 
+SQL-focused Python ORM
+
+Sqlorm intends to provide a solution where SQL stays front and center and where the behavior of the ORM is what you expect and no more. SQL is seamlessly integrated through functions and model methods using Python doc strings.
+
 ## Installation
 
     pip install sqlorm-py

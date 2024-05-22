@@ -6,7 +6,7 @@
 
 ORMs and developers often end up in a love/hate relationship. The advantages of ORMs (the mapping of objects) can be negated by their compromises (have to learn their pseudo sql syntax, less control over the generated sql, low performance).
 
-sqlorm intends to provide a solution where sql stays front and center and where the behavior of the ORM is what you expect and no more. SQL is seamlessly integrated through functions and model methods using python doc strings.
+Sqlorm intends to provide a solution where SQL stays front and center and where the behavior of the ORM is what you expect and no more. SQL is seamlessly integrated through functions and model methods using Python doc strings.
 
 - Thin layer on top of [DBAPI 2.0](https://peps.python.org/pep-0249/)
 - Use SQL as usual
