@@ -1,6 +1,19 @@
 site_name: sqlorm
 repo_url: https://github.com/hyperflask/sqlorm
+repo_name: hyperflask/sqlorm
 edit_uri: edit/main/docs/
+
+nav:
+  - index.md
+  - engine.md
+  - sessions-and-transactions.md
+  - executing.md
+  - sql-functions.md
+  - models.md
+  - sql-utilities.md
+  - mapper.md
+  - schema.md
+  - drivers.md
 
 theme:
   name: material
@@ -25,18 +38,6 @@ theme:
     - toc.integrate
   icon:
     edit: material/pencil
-
-nav:
-  - index.md
-  - engine.md
-  - sessions-and-transactions.md
-  - executing.md
-  - sql-functions.md
-  - models.md
-  - sql-utilities.md
-  - mapper.md
-  - schema.md
-  - drivers.md
   
 markdown_extensions:
   - admonition
