@@ -45,7 +45,7 @@ class SQLStr:
         raise NotImplementedError()
 
     def __sql__(self):
-        return self.render()[0]
+        return self.render()
 
     def __str__(self):
         return self.render()[0]

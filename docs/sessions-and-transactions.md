@@ -16,7 +16,7 @@ with engine as tx:
     # rollback
 ```
 
-The next section covers [how to use transactions](#executing-queries).
+The next section covers [how to use transactions](executing.md).
 
 > [!NOTE]
 > You can create transactions inside transactions with no impact (only the top-most transaction will commit)
@@ -44,8 +44,8 @@ with engine.session() as sess:
     # rollback
 ```
 
-> [!IMPORTANT]
-> sqlorm does not assume anything regarding thread safety. However, session contexts are scoped to each thread using thread locals.  
+> [!WARNING]
+> Session contexts are scoped to threads using thread locals.  
 > This means that using drivers which are not thread-safe (like sqlite) is not an issue as long as you are using the engine
 > to start sessions. Doing `with engine.session()` and `with engine:` in different threads will start different sessions.
 
@@ -83,16 +83,13 @@ count_tasks() # raises MissingEngineError
 ```
 
 > [!TIP]
-> `Session` and `Transaction` objects can be created using raw DBAPI connection objects
+> `Session` can be created using raw DBAPI connection objects
 >
 > ```python
-> from sqlorm import Session, Transaction
+> from sqlorm import Session
 > import sqlite3
 >
 > conn = sqlite3.connect(":memory:")
->
-> with Transaction(conn) as tx:
->     # ...
 >
 > with Session(conn) as sess:
 >     with sess as tx:

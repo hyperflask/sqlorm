@@ -113,7 +113,7 @@ with engine as tx:
     tx.execute(mapper.delete(task))
 ```
 
-The mapper column list `mapper.columns` is an [`SQL.Cols`](#manage-list-of-sql-pieces) object which means it can be used to generate sql conditions:
+The mapper column list `mapper.columns` is an [`SQL.Cols`](sql-utilities.md#manage-list-of-sql-pieces) object which means it can be used to generate sql conditions:
 
 ```python
 with engine as tx:

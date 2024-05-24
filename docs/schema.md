@@ -72,13 +72,13 @@ with engine:
 
 SQL files can contain multiple statements.
 
-In python files, use `get_current_session()` to create a transaction context:
+In python files, use `ensure_transaction()` to create a transaction context:
 
 ```python
 # 002_seed_data.py
-from sqlorm import get_current_session
+from sqlorm import ensure_transaction
 
-with get_current_session() as tx:
+with ensure_transaction() as tx:
     tx.execute("...")
 ```
 

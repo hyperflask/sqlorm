@@ -42,7 +42,18 @@ engine = Engine.from_uri("sqlite://:memory:") # sqlite instead of sqlite3 to us
 engine = Engine.from_uri("psycopg://?host=localhost&port=5432") # using the dbapi module name
 ```
 
-Once initialized, an engine can be used as a context to start sessions.
+Once initialized, an engine can be used as a context to [start sessions](sessions-and-transactions.md).
+
+## Connecting
+
+You shouldn't create connection manually when using sqlorm but use sessions.
+
+To create connections use `conn = engine.connect()`.  
+To close a connection use `engine.disconnect(conn)`.
+
+## Connection pool
 
 Connections are pooled and re-used by default. You can disabled this behavior by using `pool=False` in the engine constructor.
 `max_pool_conns` can also be used to define the maximum number of connections to start.
+
+Use `engine.disconnect_all()` to close all connections.

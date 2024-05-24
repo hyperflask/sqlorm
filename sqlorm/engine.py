@@ -4,9 +4,13 @@ import threading
 import logging
 import inspect
 import urllib.parse
+from blinker import Namespace
 from .sql import render, ParametrizedStmt
 from .resultset import ResultSet, CompositeResultSet, CompositionMap
 from .mapper import Mapper, HydrationMap, HydratedResultSet
+
+
+_signals = Namespace()
 
 
 class Engine:
@@ -26,6 +30,9 @@ class Engine:
                 tx.execute()
 
     """
+
+    connected = _signals.signal("connected")
+    disconnected = _signals.signal("disconnected")
 
     @classmethod
     def from_uri(cls, uri, **kwargs):
@@ -75,12 +82,20 @@ class Engine:
 
     def connect(self, from_pool=True):
         if not from_pool or self.pool is False:
+            if self.logger:
+                getattr(self.logger, self.logger_level)("New connection established")
             return self.connection_factory(self.dbapi)
 
         if self.pool:
             conn = self.pool.pop(0)
+            if self.logger:
+                getattr(self.logger, self.logger_level)("Re-using connection from pool")
+            self.connected.send(self, conn=conn, from_pool=True)
         elif not self.max_pool_conns or len(self.active_conns) < self.max_pool_conns:
+            if self.logger:
+                getattr(self.logger, self.logger_level)("New connection established")
             conn = self.connection_factory(self.dbapi)
+            self.connected.send(self, conn=conn, from_pool=False)
         else:
             raise EngineError("Max number of connections reached")
 
@@ -91,19 +106,31 @@ class Engine:
         if conn in self.active_conns:
             self.active_conns.remove(conn)
             if force:
+                if self.logger:
+                    getattr(self.logger, self.logger_level)("Closing connection (forced)")
                 conn.close()
+                self.disconnected.send(self, conn=conn, close_conn=True)
             else:
+                if self.logger:
+                    getattr(self.logger, self.logger_level)("Connection returned to pool")
                 self.pool.append(conn)
+                self.disconnected.send(self, conn=conn, close_conn=False)
         elif self.pool is False or force:
+            if self.logger:
+                getattr(self.logger, self.logger_level)("Closing connection")
             conn.close()
+            self.disconnected.send(self, conn=conn, close_conn=True)
         else:
             raise EngineError("Cannot close connection which is not part of pool")
 
     def disconnect_all(self):
         if self.pool is False:
             return
+        if self.logger:
+            getattr(self.logger, self.logger_level)("Closing all connections from pool")
         for conn in self.pool + self.active_conns:
             conn.close()
+            self.disconnected.send(self, conn=conn, close_conn=True)
         self.pool = []
         self.active_conns = []
 
@@ -112,7 +139,8 @@ class Engine:
         if self.pool is not False:
             kwargs["dbapi_conn"] = self.connect()
             kwargs["auto_close_conn"] = True
-        return Session(**kwargs)
+        session_class = getattr(self, "session_class", Session)
+        return session_class(**kwargs)
 
     @contextmanager
     def session(self, **kwargs):
@@ -220,35 +248,65 @@ class Session:
     sess.close()
     """
 
-    def __init__(self, dbapi_conn=None, auto_close_conn=None, virtual_tx=False, engine=None):
+    before_commit = _signals.signal("before-commit")
+    after_commit = _signals.signal("after-commit")
+    before_rollback = _signals.signal("before-rollback")
+    after_rollback = _signals.signal("after-rollback")
+
+    def __init__(
+        self,
+        dbapi_conn=None,
+        auto_close_conn=None,
+        virtual_tx=False,
+        logger=None,
+        logger_level=None,
+        engine=None,
+    ):
         if not dbapi_conn and not engine:
             raise SessionError("Session(): dbapi_conn or engine must be provided")
+        if engine and logger is None:
+            logger = engine.logger
+        if engine and logger_level is None:
+            logger_level = engine.logger_level
+        elif logger_level is None:
+            logger_level = logging.DEBUG
         self.engine = engine
         self.conn = dbapi_conn
         self.auto_close_conn = not bool(dbapi_conn) if auto_close_conn is None else auto_close_conn
         self.virtual_tx = virtual_tx
+        self.logger = logger
+        self.logger_level = logger_level
         self.transactions = []
         self.ended = False
 
     def connect(self):
         if not self.conn:
             self.conn = self.engine.connect()
+        return self.conn
 
     def commit(self):
         if self.ended:
             raise SessionEndedError()
-        if self.conn:
-            if self.engine and self.engine.logger:
-                getattr(self.engine.logger, self.engine.logger_level)("COMMIT")
-            self.conn.commit()
+        if not self.conn:
+            return
+        if _signal_rv(self.before_commit.send(self)) is False:
+            return
+        if self.logger:
+            getattr(self.logger, self.logger_level)("COMMIT")
+        self.conn.commit()
+        self.after_commit.send(self)
 
     def rollback(self):
         if self.ended:
             raise SessionEndedError()
-        if self.conn:
-            if self.engine and self.engine.logger:
-                getattr(self.engine.logger, self.engine.logger_level)("ROLLBACK")
-            self.conn.rollback()
+        if not self.conn:
+            return
+        if _signal_rv(self.before_rollback.send(self)) is False:
+            return
+        if self.logger:
+            getattr(self.logger, self.logger_level)("ROLLBACK")
+        self.conn.rollback()
+        self.after_rollback.send(self)
 
     def close(self):
         if self.conn:
@@ -275,10 +333,10 @@ class Session:
         if self.ended:
             raise SessionEndedError()
         if not self.transactions:
-            self.connect()
             session_context.push(self)
         virtual = virtual or self.virtual_tx or bool(self.transactions)
-        self.transactions.append(Transaction(self.conn, virtual, self.engine))
+        transaction_class = getattr(self, "transaction_class", Transaction)
+        self.transactions.append(transaction_class(self, virtual))
         return self.transactions[-1]
 
     def __exit__(self, exc_type, exc_value, exc_tb):
@@ -314,42 +372,47 @@ class SessionEndedError(SessionError):
 
 
 class Transaction:
-    def __init__(self, dbapi_conn, virtual=False, engine=None):
-        self.conn = dbapi_conn
+    default_composite_separator = "__"
+
+    before_execute = _signals.signal("before-execute")
+    before_executemany = _signals.signal("before-executemany")
+
+    def __init__(self, session, virtual=False):
+        self.session = session
         self.virtual = virtual
-        self.engine = engine
         self.ended = False
 
     def commit(self):
         if self.ended:
             raise TransactionEndedError()
         if not self.virtual:
-            if self.engine and self.engine.logger:
-                getattr(self.engine.logger, self.engine.logger_level)("COMMIT")
-            self.conn.commit()
+            self.session.commit()
         self.ended = True
 
     def rollback(self):
         if self.ended:
             raise TransactionEndedError()
         if not self.virtual:
-            if self.engine and self.engine.logger:
-                getattr(self.engine.logger, self.engine.logger_level)("ROLLBACK")
-            self.conn.rollback()
+            self.session.rollback()
         self.ended = True
 
     def cursor(self, stmt=None, params=None):
         if self.ended:
             raise TransactionEndedError()
-        cur = self.conn.cursor()
         if not stmt:
-            return cur
+            return self.session.connect().cursor()
         stmt, params = render(stmt, params)
-        if self.engine and self.engine.logger:
-            getattr(self.engine.logger, self.engine.logger_level)(
+
+        rv = _signal_rv(self.before_execute.send(self, stmt=stmt, params=params))
+        if rv:
+            return rv
+
+        if self.session and self.session.logger:
+            getattr(self.session.logger, self.session.logger_level)(
                 "%s %s" % (stmt, params) if params else stmt
             )
 
+        cur = self.session.connect().cursor()
         if params:
             cur.execute(stmt, params)
         else:
@@ -363,9 +426,20 @@ class Transaction:
             return
         self.cursor(stmt, params).close()
 
-    def executemany(self, operation, seq_of_parameters):
+    def executemany(self, stmt, seq_of_parameters):
+        rv = _signal_rv(
+            self.before_executemany.send(self, stmt=stmt, seq_of_parameters=seq_of_parameters)
+        )
+        if rv is False:
+            return
+
+        if self.session and self.session.logger:
+            getattr(self.session.logger, self.session.logger_level)(
+                "%s (x%s)" % (stmt, len(seq_of_parameters)) if seq_of_parameters else stmt
+            )
+
         cur = self.cursor()
-        cur.executemany(str(operation), seq_of_parameters)
+        cur.executemany(str(stmt), seq_of_parameters)
         cur.close()
 
     def fetch(self, stmt, params=None, model=None, obj=None, loader=None):
@@ -403,7 +477,7 @@ class Transaction:
         nested=None,
         obj=None,
         map=None,
-        separator="__",
+        separator=None,
     ):
         if obj and not model:
             model = obj.__class__
@@ -417,7 +491,9 @@ class Transaction:
         elif not map:
             map = CompositionMap.create([loader, nested])
 
-        rs = CompositeResultSet(self.cursor(stmt, params), map, separator)
+        rs = CompositeResultSet(
+            self.cursor(stmt, params), map, separator or self.default_composite_separator
+        )
         if obj:
             map.mapper.hydrate(obj, rs.first(with_loader=False))
             return obj
@@ -469,3 +545,13 @@ def parse_uri(uri):
                 kwargs[k] = v
     args = [uri] if uri else []
     return module, args, kwargs
+
+
+def _signal_rv(signal_rv):
+    final_rv = None
+    for func, rv in signal_rv:
+        if rv is False:
+            return False
+        if rv:
+            final_rv = rv
+    return final_rv

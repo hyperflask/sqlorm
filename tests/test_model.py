@@ -69,6 +69,13 @@ def test_mapper():
 
 
 def test_find_all(engine):
+    listener_called = False
+
+    @Model.before_query.connect
+    def on_before_query(sender, stmt, params):
+        nonlocal listener_called
+        listener_called = True
+
     with engine:
         tasks = Task.find_all().all()
         assert len(tasks) == 2
@@ -79,6 +86,7 @@ def test_find_all(engine):
         assert tasks[1].id == 2
         assert tasks[1].title == "bar"
         assert not tasks[1].done
+        assert listener_called
 
         tasks = Task.find_all(Task.done == True).all()
         assert len(tasks) == 1
@@ -111,6 +119,18 @@ def test_get(engine):
 
 
 def test_refresh(engine):
+    listener_called = 0
+
+    @Model.before_refresh.connect
+    def on_before_refresh(sender, obj):
+        nonlocal listener_called
+        listener_called += 1
+
+    @Model.after_refresh.connect
+    def on_after_refresh(sender, obj):
+        nonlocal listener_called
+        listener_called += 1
+
     with engine:
         task = Task.get(1)
         assert task.done
@@ -118,6 +138,7 @@ def test_refresh(engine):
         assert not task.done
         task.refresh()
         assert task.done
+        assert listener_called == 2
 
 
 def test_relationships(engine):
@@ -208,12 +229,25 @@ def test_dirty_tracking(engine):
 
 
 def test_insert(engine):
+    listener_called = 0
+
+    @Model.before_insert.connect
+    def on_before_insert(sender, obj):
+        nonlocal listener_called
+        listener_called += 1
+
+    @Model.after_insert.connect
+    def on_after_insert(sender, obj):
+        nonlocal listener_called
+        listener_called += 1
+
     with engine:
         user = User(email="bar@example.com")
         assert user.__dirty__ == {"email"}
         assert not user.id
-        user.save()
+        assert user.save()
         assert user.id == 2
+        assert listener_called == 2
 
         user = User.get(2)
         assert user.email == "bar@example.com"
@@ -226,22 +260,65 @@ def test_insert(engine):
         assert user.id
         assert not user.email
 
+    def on_before_insert_cancel(sender, obj):
+        return False
+    
+    with Model.before_insert.connected_to(on_before_insert_cancel), engine:
+        user = User(email="something@something")
+        assert not user.save()
+        assert not user.id
+
+    def on_before_insert_stmt(sender, obj):
+        return SQL.insert("users", {"email": "something@different"}).returning("*")
+    
+    with Model.before_insert.connected_to(on_before_insert_stmt), engine:
+        user = User(email="something@something")
+        assert user.save()
+        assert user.id
+        assert user.email == "something@different"
+
 
 def test_update(engine):
+    listener_called = 0
+
+    @Model.before_update.connect
+    def on_before_update(sender, obj):
+        nonlocal listener_called
+        listener_called += 1
+
+    @Model.after_update.connect
+    def on_after_update(sender, obj):
+        nonlocal listener_called
+        listener_called += 1
+
     with engine:
         user = User.get(2)
         user.email = "bar2@example.com"
         user.save()
+        assert listener_called == 2
 
         user = User.get(2)
         assert user.email == "bar2@example.com"
 
 
 def test_save(engine):
+    listener_called = 0
+
+    @Model.before_save.connect
+    def on_before_save(sender, obj, is_new):
+        nonlocal listener_called
+        listener_called += 1
+
+    @Model.after_save.connect
+    def on_after_save(sender, obj):
+        nonlocal listener_called
+        listener_called += 1
+
     with engine:
         user = User.get(3)
         user.email = "baz@example.com"
         user.save()
+        assert listener_called == 2
 
         user = User.get(3)
         assert user.email == "baz@example.com"
@@ -249,16 +326,29 @@ def test_save(engine):
         user = User(email="boo@example.com")
         assert not user.id
         user.save()
-        assert user.id == 4
+        assert user.id == 5
 
-        user = User.get(4)
+        user = User.get(5)
         assert user.email == "boo@example.com"
 
 
 def test_delete(engine):
+    listener_called = 0
+
+    @Model.before_delete.connect
+    def on_before_delete(sender, obj):
+        nonlocal listener_called
+        listener_called += 1
+
+    @Model.after_delete.connect
+    def on_after_delete(sender, obj):
+        nonlocal listener_called
+        listener_called += 1
+
     with engine:
         user = User.get(4)
         user.delete()
+        assert listener_called == 2
 
         user = User.get(4)
         assert not user

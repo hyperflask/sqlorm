@@ -7,13 +7,13 @@ Any class can be used as a model. However, subclassing sqlorm's `Model` class pr
 - Auto fetching lazy attributes and relationships when accessed
 
 > [!NOTE]
-> When using classes that do not subclass `Model`, `Mapper.from_class()` is used to generate a mapping. See [Mapping any class](#mapping-any-class).
+> When using classes that do not subclass `Model`, `Mapper.from_class()` is used to generate a mapping. See [Mapping any class](mapper.md).
 
 ## Defining models
 
 Models are classes inheriting from `Model`. To define which table they represent, use the `table` class property.
 
-To define column mapping, define properties via annotations. The type used will be [converted to an sql type](#column-types).
+To define column mapping, define properties via annotations. The type used will be [converted to an sql type](sql-utilities.md#column-types).
 For more control over the mapping, you can use instantiate `Column()` objects:
 
 ```python
@@ -29,7 +29,7 @@ class Task(Model):
 
 Once columns are defined via annotations or `Column` properties, they are accessible as class and instance properties.
 
-As class properties, they can be used as a [composable piece of sql](#sql-utilities):
+As class properties, they can be used as a [composable piece of sql](sql-utilities.md):
 
 ```python
 stmt = SQL("SELECT * FROM tasks WHERE", Task.done == False)
@@ -56,7 +56,7 @@ task.title = "title"
 
 ## SQL methods on models
 
-Create SQL methods as you would [SQL functions](#sql-functions). Use `@classmethod` and `@staticmethod` decorator when needed.
+Create SQL methods as you would [SQL functions](sql-functions.md). Use `@classmethod` and `@staticmethod` decorator when needed.
 
 ```python
 class Task(Model):
@@ -140,7 +140,7 @@ However, `Model` also exposes easier to use ways to fetch data using without the
 When called out of a transaction context, a non commited transaction will automatically be started. If bound to an engine,
 these class methods can also be called out of a session context.
 
-- `query()` executes the provided statement using [`fetchhydrated()`](#fetching-composite-objects)
+- `query()` executes the provided statement using [`fetchhydrated()`](executing.md#fetching-composite-objects)
 - `find_all()` constructs a select statement based on the provided arguments and executes using `query()`
 - `find_one()` same as `find_all()` but only returns the first row
 - `get()` to find one row by primary key
@@ -160,8 +160,8 @@ with engine:
 > [!TIP]
 > You can also build select statement with auto populated column list and from clause using `Model.select_from()`.
 
-Mapped columns can easily be used as [pieces of composable sql](#sql-utilities): accessing the class attribute representing
-the column returns an [`SQL.Col` object](#manage-list-of-sql-pieces) that can be used with python operators to return
+Mapped columns can easily be used as [pieces of composable sql](sql-utilities.md): accessing the class attribute representing
+the column returns an [`SQL.Col` object](sql-utilities.md#manage-list-of-sql-pieces) that can be used with python operators to return
 sql conditions:
 
 ```python
@@ -181,6 +181,8 @@ Manipulate model objects as you would with any python objects. The following met
 - `delete()` deletes a delete statement
 - `refresh()` executes a select statement (same as `get()`) and updates the object attribute values
 - `create()` a class method to create and insert an object in one line
+
+These methods (apart from `create()`) return a boolean indicating if the operation was performed.
 
 > [!NOTE]
 > DML (Data Manipulation Language) statements are the statement that modify data in the database (insert, update and delete mostly)
@@ -273,7 +275,7 @@ with engine:
 > You should not disable dirty tracking when allowing unknown columns otherwise setting attributes
 > will not result in them being used in DML statements unless they are mapped.  
 > When dirty tracking is disabled and you are using unknown attributes, the only way sqlorm keeps
-> track of them is through the [`__hydrated_attrs__` attribute](#dehydrating-objects).
+> track of them is through the [`__hydrated_attrs__` attribute](mapper.md#dehydrating-objects).
 
 You can disallow unknown columns
 
@@ -445,4 +447,26 @@ with engine:
 
 ## Column types
 
+Columns can have a type which defines the SQL type and serialization/deserialization functions.
 
+!!! note
+    The goal is not to re-define sql types in python. Types are optional in your column definitions.
+    sqlorm relies mainly on the underlying DBAPI driver to do the conversion. Drivers have custom methods to
+    provide type mapping.
+
+Define types using `SQLType`:
+
+```py
+from sqlorm import SQLType
+import json
+
+JSON = SQLType("json", json.loads, json.dumps)
+
+class MyModel(Model):
+    my_json_column = Column(type=JSON)
+```
+
+The following types are already defines and importable from the `sqlorm` package: 
+`Integer`, `Decimal`, `Varchar`, `Text`, `Boolean`, `Date`, `Time`, `DateTime`, `JSON`, `Pickle`.
+
+Python types from annotations will automatically used one of these type when appropriate (see `sqlorm.types.PYTHON_TYPES_MAP`).

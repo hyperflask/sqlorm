@@ -12,6 +12,7 @@ nav:
   - models.md
   - sql-utilities.md
   - mapper.md
+  - signals.md
   - schema.md
   - drivers.md
 
@@ -35,6 +36,7 @@ theme:
         name: Switch to light mode
   features:
     - content.action.edit
+    - content.code.copy
     - toc.integrate
   icon:
     edit: material/pencil
@@ -47,6 +49,3 @@ markdown_extensions:
 plugins:
   - search
   - callouts
-  - git-committers:
-      repository: hyperflask/sqlorm
-      branch: main

@@ -10,6 +10,7 @@ packages = [{include = "sqlorm"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+blinker = "^1.8.2"
 
 [tool.poetry.group.postgresql.dependencies]
 psycopg = {extras = ["binary"], version = "^3.1.18"}
@@ -23,7 +24,6 @@ pytest-cov = "^4.1.0"
 ruff = "^0.4.3"
 mkdocs-material = "^9.5.24"
 mkdocs-callouts = "^1.13.2"
-mkdocs-git-committers-plugin-2 = "^2.3.0"
 
 [tool.ruff]
 include = ["sqlorm/**/*.py"]

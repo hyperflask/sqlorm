@@ -2,9 +2,9 @@ import abc
 import typing as t
 import inspect
 from .sql import SQL, Column as SQLColumn, ColumnExpr as SQLColumnExpr
-from .engine import Engine, ensure_transaction
+from .engine import Engine, ensure_transaction, _signals, _signal_rv
 from .sqlfunc import is_sqlfunc, sqlfunc, fetchall, fetchone, execute, update
-from .resultset import CompositeResultSet
+from .resultset import ResultSet, CompositeResultSet
 from .types import SQLType
 from .mapper import (
     Mapper,
@@ -70,7 +70,7 @@ class ModelMetaclass(abc.ABCMeta):
 
         dct["__mapper__"] = mapped_attrs
         return dct
-    
+
     @staticmethod
     def make_sqlfunc_from_method(func, decorator, model_registry):
         doc = inspect.getdoc(func)
@@ -317,7 +317,7 @@ class ModelRegistry(dict):
 
 
 class BaseModel(abc.ABC, metaclass=ModelMetaclass):
-    """The base class for the model system whether you want utility methods or not"""
+    """The base class for the model system whether you want CRUD methods or not"""
 
     __engine__: t.ClassVar[t.Optional[Engine]] = None
     __model_registry__: t.ClassVar[ModelRegistry] = ModelRegistry()
@@ -344,12 +344,24 @@ class BaseModel(abc.ABC, metaclass=ModelMetaclass):
 
 
 class Model(BaseModel, abc.ABC):
-    """Our standard model class with common ORM utility methods"""
+    """Our standard model class with CRUD methods"""
 
     class Meta:
         insert_update_dirty_only: bool = (
             True  # use BaseModel.__dirty__ to decide which data to insert() or update()
         )
+
+    before_query = _signals.signal("before-query")
+    before_refresh = _signals.signal("before-refresh")
+    after_refresh = _signals.signal("after-refresh")
+    before_insert = _signals.signal("before-insert")
+    after_insert = _signals.signal("after-insert")
+    before_update = _signals.signal("before-update")
+    after_update = _signals.signal("after-update")
+    before_save = _signals.signal("before-save")
+    after_save = _signals.signal("after-save")
+    before_delete = _signals.signal("before-delete")
+    after_delete = _signals.signal("after-delete")
 
     @classmethod
     def select_from(
@@ -358,13 +370,19 @@ class Model(BaseModel, abc.ABC):
         return cls.__mapper__.select_from(columns, table_alias, with_rels, with_joins, with_lazy)
 
     @classmethod
-    def query(cls, stmt, params=None, nested=None, **resultset_kwargs) -> CompositeResultSet:
+    def query(cls, stmt, params=None) -> CompositeResultSet:
         """Executes a query and returns results where rows are hydrated to model objects"""
         with ensure_transaction(cls.__engine__) as tx:
-            return tx.fetchhydrated(cls, stmt, params, nested=nested, **resultset_kwargs)
+            rv = _signal_rv(cls.before_query.send(cls, stmt=stmt, params=params))
+            if rv is False:
+                return ResultSet(None)
+            if isinstance(rv, ResultSet):
+                return rv
+            if isinstance(rv, tuple):
+                stmt, params = rv
+            return tx.fetchhydrated(cls, stmt, params)
 
     @classmethod
-    @fetchall
     def find_all(
         cls,
         _where: t.Optional[t.Union[str, SQL]] = None,
@@ -378,13 +396,12 @@ class Model(BaseModel, abc.ABC):
             where.append(_where)
         for col, value in cols.items():
             where.append(SQL.Col(col, cls.table.name) == SQL.Param(value))
-        q = cls.select_from(with_rels=with_rels, with_joins=with_joins, with_lazy=with_lazy)
+        stmt = cls.select_from(with_rels=with_rels, with_joins=with_joins, with_lazy=with_lazy)
         if where:
-            return q.where(where)
-        return q
+            stmt = stmt.where(where)
+        return cls.query(stmt)
 
     @classmethod
-    @fetchone
     def find_one(
         cls,
         _where: t.Optional[t.Union[str, SQL]] = None,
@@ -393,16 +410,23 @@ class Model(BaseModel, abc.ABC):
         with_lazy=False,
         **cols,
     ):
-        return cls.find_all.sql(
-            cls, _where, with_rels=with_rels, with_joins=with_joins, with_lazy=with_lazy, **cols
-        ).limit(1)
+        where = SQL.And([])
+        if _where:
+            where.append(_where)
+        for col, value in cols.items():
+            where.append(SQL.Col(col, cls.table.name) == SQL.Param(value))
+        stmt = cls.select_from(with_rels=with_rels, with_joins=with_joins, with_lazy=with_lazy)
+        if where:
+            stmt = stmt.where(where)
+        return cls.query(stmt.limit(1)).first()
 
     @classmethod
-    @fetchone
     def get(cls, pk, with_rels=False, with_lazy=False):
-        return cls.select_from(with_rels=with_rels, with_lazy=with_lazy).where(
-            cls.__mapper__.primary_key_condition(pk, cls.table.name)
-        )
+        return cls.query(
+            cls.select_from(with_rels=with_rels, with_lazy=with_lazy)
+            .where(cls.__mapper__.primary_key_condition(pk, cls.table.name))
+            .limit(1)
+        ).first()
 
     @classmethod
     def create(cls, **values):
@@ -418,29 +442,67 @@ class Model(BaseModel, abc.ABC):
         self.__dict__[name] = value
         flag_dirty_attr(self, name)
 
-    @update
     def refresh(self, **select_kwargs):
-        return self.__mapper__.select_by_pk(self.__mapper__.get_primary_key(self), **select_kwargs)
+        stmt = self.__mapper__.select_by_pk(self.__mapper__.get_primary_key(self), **select_kwargs)
+        rv = _signal_rv(self.before_refresh.send(self.__class__, obj=self))
+        if rv is False:
+            return False
+        if rv:
+            stmt = rv
+        with ensure_transaction(self.__engine__) as tx:
+            tx.fetchhydrated(self, stmt)
+        self.after_refresh.send(self.__class__, obj=self)
+        return True
 
-    @update
     def insert(self, **dehydrate_kwargs):
-        return self.__mapper__.insert(self, **dehydrate_kwargs).returning("*")
+        stmt = self.__mapper__.insert(self, **dehydrate_kwargs).returning("*")
+        rv = _signal_rv(self.before_insert.send(self.__class__, obj=self))
+        if rv is False:
+            return False
+        if rv:
+            stmt = rv
+        with ensure_transaction(self.__engine__) as tx:
+            tx.fetchhydrated(self, stmt)
+        self.after_insert.send(self.__class__, obj=self)
+        return True
 
-    @update
     def update(self, **dehydrate_kwargs):
         stmt = self.__mapper__.update(self, **dehydrate_kwargs)
+        rv = _signal_rv(self.before_update.send(self.__class__, obj=self))
+        if rv is False:
+            return False
+        if rv:
+            stmt = rv
         if stmt:
-            return stmt.returning("*")
+            with ensure_transaction(self.__engine__) as tx:
+                tx.fetchhydrated(self, stmt.returning("*"))
+            self.after_update.send(self.__class__, obj=self)
+            return True
+        return False
 
     def save(self, **dehydrate_kwargs):
-        if self.__mapper__.get_primary_key(self):
-            self.update(**dehydrate_kwargs)
+        is_new = not bool(self.__mapper__.get_primary_key(self))
+        if _signal_rv(self.before_save.send(self.__class__, obj=self, is_new=is_new)) is False:
+            return False
+        if is_new:
+            done = self.insert(**dehydrate_kwargs)
         else:
-            self.insert(**dehydrate_kwargs)
+            done = self.update(**dehydrate_kwargs)
+        if done:
+            self.after_save.send(self.__class__, obj=self)
+        return done
 
-    @execute
     def delete(self):
-        return self.__mapper__.delete(self)
+        stmt = self.__mapper__.delete(self)
+        rv = _signal_rv(self.before_delete.send(self.__class__, obj=self))
+        if rv is False:
+            return False
+        if rv:
+            stmt = rv
+        with ensure_transaction(self.__engine__) as tx:
+            tx.execute(stmt)
+        self.after_delete.send(self.__class__, obj=self)
+        return True
 
     def __repr__(self):
         return f"<{self.__class__.__name__}({self.__mapper__.get_primary_key(self) or '?'})>"

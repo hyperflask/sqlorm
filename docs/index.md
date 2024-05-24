@@ -10,7 +10,7 @@ Sqlorm intends to provide a solution where SQL stays front and center and where 
 
 ## Getting started
 
-Create an [`Engine`](#the-engine) that will manage database connections for you:
+Create an [`Engine`](engine.md) that will manage database connections for you:
 
 ```python
 from sqlorm import Engine
@@ -18,11 +18,11 @@ from sqlorm import Engine
 engine = Engine.from_uri("sqlite://:memory:")
 ```
 
-Use the engine as a [context to connect to the database](#sessions-and-transactions). A transaction object is provided to execute statements.
+Use the engine as a [context to connect to the database](sessions-and-transactions.md). A transaction object is provided to execute statements.
 If no exception is raised in the context, the transaction will be committed, rollbacked otherwise.
 
 sqlorm's `Transaction` has a similar API than DBAPI's Connection but instead of using a cursor,
-methods return [result sets](#fetching-from-the-database) that you can iterate over:
+methods return [result sets](executing.md#fetching-from-the-database) that you can iterate over:
 
 ```python
 with engine as tx:
@@ -46,7 +46,7 @@ with engine as tx:
     print(task1.title)
 ```
 
-To facilitate managing sql statements, you can create ["sql functions"](#sql-functions).
+To facilitate managing sql statements, you can create ["sql functions"](sql-functions.md).
 These are functions which only have a doc string containing the SQL statement.
 
 ```python
@@ -76,7 +76,7 @@ with engine:
 
 Note: these functions must be executed in the context of a database session (or be bound to an engine)
 
-Finally, we can create [model classes](#models) that can provide custom mapping information:
+Finally, we can create [model classes](models.md) that can provide custom mapping information:
 
 ```python
 from sqlorm import Model, PrimaryKey, create_table

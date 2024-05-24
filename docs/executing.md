@@ -28,7 +28,7 @@ with engine as tx:
     tx.execute(stmt)
 ```
 
-[`SQL` utilities](#sql-utilities) to build sql statements can also be used:
+[`SQL` utilities](sql-utilities.md) to build sql statements can also be used:
 
 ```python
 from sqlorm import SQL
@@ -94,7 +94,7 @@ with engine as tx:
 > - The process of populating objects with data from the database is called "hydration".
 > - When creating objects, `__init__()` will be bypassed as well as any custom `__setattr__`.
 >
-> Learn more about sqlorm hydration process in the [mapper section](#hydrate-objects)
+> Learn more about sqlorm hydration process in the [mapper section](mapper.md#hydrate-objects)
 
 You can update existing objects by passing an object instance to the `obj` argument.
 In this case, only the first row will be used to hydrate the object. The cursor is then closed.
@@ -107,7 +107,7 @@ with engine as tx:
     assert task.title == "task title"
 ```
 
-[Models](#models) and [mappers](#mapping-any-class) can be used to customize how objects are mapped.
+[Models](models.md) and [mappers](mapper.md) can be used to customize how objects are mapped.
 `Mapper` instances can also be provided as models.
 
 ## Composite rows
@@ -183,7 +183,7 @@ with engine as tx:
     rows = tx.fetchcomposite("SELECT ... FROM posts LEFT JOIN comments ...")
 ```
 
-Using the [`SQL` utilities](#sql-utilities) makes it easier to build these kind of queries:
+Using the [`SQL` utilities](sql-utilities.md) makes it easier to build these kind of queries:
 
 ```python
 with engine as tx:
