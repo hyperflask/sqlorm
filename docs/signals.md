@@ -6,8 +6,10 @@ Signals allow you to listen and react to events emitted by sqlorm. The [blinker]
 
 The following signals exist on the `Engine` class. The sender is always the engine instance.
 
-- `connected`: receive `conn` (connection instance) and `from_pool` (bool)
-- `disconnected`: receive `conn` (connection instance) and `close_conn` (bool). This signal may not indicate a connection has been closed but only returned to the pool. Use the `close_conn` kwargs to distinguish.
+- `connected`: receive `conn` (connection instance)
+- `pool_checkout`: connection checked out of the pool, receive `conn`
+- `pool_checkin`: connection returned to the pool, receive `conn`
+- `disconnected`: receive `conn` (connection instance)
 
 Example:
 
@@ -44,8 +46,14 @@ def on_before_commit(session):
 
 The following signals exist on the `Transaction` class. The sender is always the transaction instance.
 
-- `before_execute`: receive `stmt` and `params`. Returning a cursor will stop sqlorm execute() and return the cursor directly
-- `before_executemany`: receive `stmt` and `seq_of_parameters`. Returning false will stop sqlorm executemany()
+- `before_execute`: receive `stmt`, `params` and `many` (to distinguish between execute and executemany)
+    - when called from execute: returning a cursor will stop sqlorm execution and return the cursor directly
+    - when called from executemany: returning False will stop sqlorm execution
+    - in both case, returning a tuple `(stmt, params)` will override stmt and params
+- `after_execute`: receive `cursor`, `stmt`, `params` and `many`
+- `handle_error`: receive `cursor`, `stmt`, `params`, `many` and `exc`:
+    - when handling for execute: return a cursor to prevent raising the exception
+    - when handling for executemany: return True to prevent raising
 
 ## Model
 

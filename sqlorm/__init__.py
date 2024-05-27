@@ -16,3 +16,6 @@ from .mapper import PrimaryKey
 from .model import BaseModel, Model, Column, ColumnExpr, Relationship, flag_dirty_attr, is_dirty
 from .types import *
 from .schema import create_all, create_table, init_db, migrate
+
+
+__version__ = "0.2.0"

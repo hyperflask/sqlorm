@@ -15,6 +15,7 @@ nav:
   - signals.md
   - schema.md
   - drivers.md
+  - instrumentation.md
 
 theme:
   name: material

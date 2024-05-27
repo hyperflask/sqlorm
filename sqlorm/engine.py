@@ -4,6 +4,7 @@ import threading
 import logging
 import inspect
 import urllib.parse
+import functools
 from blinker import Namespace
 from .sql import render, ParametrizedStmt
 from .resultset import ResultSet, CompositeResultSet, CompositionMap
@@ -32,6 +33,8 @@ class Engine:
     """
 
     connected = _signals.signal("connected")
+    pool_checkin = _signals.signal("pool-checkin")
+    pool_checkout = _signals.signal("pool-checkout")
     disconnected = _signals.signal("disconnected")
 
     @classmethod
@@ -82,46 +85,45 @@ class Engine:
 
     def connect(self, from_pool=True):
         if not from_pool or self.pool is False:
-            if self.logger:
-                getattr(self.logger, self.logger_level)("New connection established")
-            return self.connection_factory(self.dbapi)
+            return self._connect()
 
         if self.pool:
             conn = self.pool.pop(0)
             if self.logger:
                 getattr(self.logger, self.logger_level)("Re-using connection from pool")
-            self.connected.send(self, conn=conn, from_pool=True)
+            self.pool_checkout.send(self, conn=conn)
         elif not self.max_pool_conns or len(self.active_conns) < self.max_pool_conns:
-            if self.logger:
-                getattr(self.logger, self.logger_level)("New connection established")
-            conn = self.connection_factory(self.dbapi)
-            self.connected.send(self, conn=conn, from_pool=False)
+            conn = self._connect()
         else:
             raise EngineError("Max number of connections reached")
 
         self.active_conns.append(conn)
         return conn
+    
+    def _connect(self):
+        if self.logger:
+            getattr(self.logger, self.logger_level)("Creating new connection")
+        conn = self.connection_factory(self.dbapi)
+        self.connected.send(self, conn=conn)
+        return conn
 
     def disconnect(self, conn, force=False):
-        if conn in self.active_conns:
+        if force or self.pool is False:
+            self._close(conn)
+        elif conn in self.active_conns:
             self.active_conns.remove(conn)
-            if force:
-                if self.logger:
-                    getattr(self.logger, self.logger_level)("Closing connection (forced)")
-                conn.close()
-                self.disconnected.send(self, conn=conn, close_conn=True)
-            else:
-                if self.logger:
-                    getattr(self.logger, self.logger_level)("Connection returned to pool")
-                self.pool.append(conn)
-                self.disconnected.send(self, conn=conn, close_conn=False)
-        elif self.pool is False or force:
             if self.logger:
-                getattr(self.logger, self.logger_level)("Closing connection")
-            conn.close()
-            self.disconnected.send(self, conn=conn, close_conn=True)
+                getattr(self.logger, self.logger_level)("Returning connection to pool")
+            self.pool.append(conn)
+            self.pool_checkin.send(self, conn=conn)
         else:
             raise EngineError("Cannot close connection which is not part of pool")
+        
+    def _close(self, conn):
+        if self.logger:
+            getattr(self.logger, self.logger_level)("Closing connection")
+        conn.close()
+        self.disconnected.send(self, conn=conn)
 
     def disconnect_all(self):
         if self.pool is False:
@@ -130,7 +132,7 @@ class Engine:
             getattr(self.logger, self.logger_level)("Closing all connections from pool")
         for conn in self.pool + self.active_conns:
             conn.close()
-            self.disconnected.send(self, conn=conn, close_conn=True)
+            self.disconnected.send(self, conn=conn)
         self.pool = []
         self.active_conns = []
 
@@ -375,7 +377,8 @@ class Transaction:
     default_composite_separator = "__"
 
     before_execute = _signals.signal("before-execute")
-    before_executemany = _signals.signal("before-executemany")
+    after_execute = _signals.signal("after-execute")
+    handle_error = _signals.signal("handle-error")
 
     def __init__(self, session, virtual=False):
         self.session = session
@@ -403,8 +406,10 @@ class Transaction:
             return self.session.connect().cursor()
         stmt, params = render(stmt, params)
 
-        rv = _signal_rv(self.before_execute.send(self, stmt=stmt, params=params))
-        if rv:
+        rv = _signal_rv(self.before_execute.send(self, stmt=stmt, params=params, many=False))
+        if isinstance(rv, tuple):
+            stmt, params = rv
+        elif rv:
             return rv
 
         if self.session and self.session.logger:
@@ -413,10 +418,19 @@ class Transaction:
             )
 
         cur = self.session.connect().cursor()
-        if params:
-            cur.execute(stmt, params)
-        else:
-            cur.execute(stmt)
+        try:
+            # because the default value of params may depend on some engine
+            if params:
+                cur.execute(stmt, params)
+            else:
+                cur.execute(stmt)
+        except Exception as e:
+            rv = _signal_rv(self.handle_error.send(self, cursor=cur, stmt=stmt, params=params, exc=e, many=False))
+            if rv:
+                return rv
+            raise
+
+        self.after_execute.send(self, cursor=cur, stmt=stmt, params=params, many=False)
         return cur
 
     def execute(self, stmt, params=None):
@@ -428,9 +442,11 @@ class Transaction:
 
     def executemany(self, stmt, seq_of_parameters):
         rv = _signal_rv(
-            self.before_executemany.send(self, stmt=stmt, seq_of_parameters=seq_of_parameters)
+            self.before_execute.send(self, stmt=stmt, params=seq_of_parameters, many=True)
         )
-        if rv is False:
+        if isinstance(rv, tuple):
+            stmt, seq_of_parameters = rv
+        elif rv is False:
             return
 
         if self.session and self.session.logger:
@@ -439,7 +455,16 @@ class Transaction:
             )
 
         cur = self.cursor()
-        cur.executemany(str(stmt), seq_of_parameters)
+
+        try:
+            cur.executemany(str(stmt), seq_of_parameters)
+        except Exception as e:
+            if not _signal_rv(
+                self.handle_error.send(self, cursor=cur, stmt=stmt, params=seq_of_parameters, exc=e, many=True)
+            ):
+                raise
+        
+        self.after_execute.send(self, cursor=cur, stmt=stmt, params=seq_of_parameters, many=True)
         cur.close()
 
     def fetch(self, stmt, params=None, model=None, obj=None, loader=None):
@@ -555,3 +580,21 @@ def _signal_rv(signal_rv):
         if rv:
             final_rv = rv
     return final_rv
+
+
+def connect_via_engine(engine, signal, func=None):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(sender, **kw):
+            matches = False
+            if isinstance(sender, Engine):
+                matches = sender is engine
+            elif isinstance(sender, Session):
+                matches = sender.engine is engine
+            elif isinstance(sender, Transaction):
+                matches = sender.session.engine is engine
+            if matches:
+                return func(sender, **kw)
+        signal.connect(wrapper, weak=False)
+        return wrapper
+    return decorator(func) if func else decorator
