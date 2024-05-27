@@ -138,9 +138,8 @@ class Engine:
 
     def make_session(self, **kwargs):
         kwargs["engine"] = self
-        if self.pool is not False:
-            kwargs["dbapi_conn"] = self.connect()
-            kwargs["auto_close_conn"] = True
+        kwargs["dbapi_conn"] = None
+        kwargs["auto_close_conn"] = True
         session_class = getattr(self, "session_class", Session)
         return session_class(**kwargs)
 
