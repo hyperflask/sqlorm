@@ -411,12 +411,12 @@ class Transaction:
         elif rv:
             return rv
 
+        cur = self.session.connect().cursor()
+
         if self.session and self.session.logger:
             getattr(self.session.logger, self.session.logger_level)(
                 "%s %s" % (stmt, params) if params else stmt
             )
-
-        cur = self.session.connect().cursor()
         try:
             # because the default value of params may depend on some engine
             if params:
@@ -448,12 +448,12 @@ class Transaction:
         elif rv is False:
             return
 
+        cur = self.cursor()
+
         if self.session and self.session.logger:
             getattr(self.session.logger, self.session.logger_level)(
                 "%s (x%s)" % (stmt, len(seq_of_parameters)) if seq_of_parameters else stmt
             )
-
-        cur = self.cursor()
 
         try:
             cur.executemany(str(stmt), seq_of_parameters)
