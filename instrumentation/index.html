@@ -9,10 +9,8 @@
       
       
       
-        <link rel="prev" href="../schema/">
+        <link rel="prev" href="../drivers/">
       
-      
-        <link rel="next" href="../instrumentation/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -20,7 +18,7 @@
     
     
       
-        <title>Drivers - sqlorm</title>
+        <title>Instrumentation - sqlorm</title>
       
     
     
@@ -72,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#drivers" class="md-skip">
+        <a href="#instrumentation" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Drivers
+              Instrumentation
             
           </span>
         </div>
@@ -460,6 +458,26 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../drivers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Drivers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -469,90 +487,10 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Drivers
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  <span class="md-ellipsis">
-    Drivers
-  </span>
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#drivers" class="md-nav__link">
-    <span class="md-ellipsis">
-      Drivers
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Drivers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sqlite" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sqlite
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#postgresql" class="md-nav__link">
-    <span class="md-ellipsis">
-      Postgresql
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../instrumentation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -561,6 +499,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -580,7 +519,7 @@
                   
 
   
-    <a href="https://github.com/hyperflask/sqlorm/edit/main/docs/drivers.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/hyperflask/sqlorm/edit/main/docs/instrumentation.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
     </a>
@@ -588,67 +527,15 @@
   
 
 
-  <h1>Drivers</h1>
+<h1 id="instrumentation">Instrumentation</h1>
+<p>SQLORM can be instrumented using OpenTelemetry.</p>
+<p>It supports automatic instrumentation or can be enabled manually:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm.opentelemetry</span> <span class="kn">import</span> <span class="n">SQLORMInstrumentor</span>
 
-<h2 id="drivers">Drivers</h2>
-<p>sqlorm provides built-in support for the following databases:</p>
-<table>
-<thead>
-<tr>
-<th>Database</th>
-<th>DBAPI implementation</th>
-<th>URI scheme</th>
-<th>sqlorm overrides</th>
-<th>Required package</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>SQLite</td>
-<td><a href="https://docs.python.org/3/library/sqlite3.html">sqlite3</a></td>
-<td>sqlite://</td>
-<td>Uses <code>sqlite3.Row</code> as the default row_factory and check_same_thread=False</td>
-<td></td>
-</tr>
-<tr>
-<td>PostgreSQL</td>
-<td><a href="https://www.psycopg.org/psycopg3/docs/index.html">psycopg3</a></td>
-<td>postgresql://</td>
-<td>No overrides</td>
-<td>psycopg[binary]</td>
-</tr>
-<tr>
-<td>MySQL</td>
-<td><a href="https://dev.mysql.com/doc/connector-python/en/connector-python-introduction.html">mysql.connector</a></td>
-<td>mysql://</td>
-<td>Uses <code>MySQLCursorDict</code> as default cursor class</td>
-<td>mysql-connector-python</td>
-</tr>
-</tbody>
-</table>
-<h3 id="sqlite">Sqlite</h3>
-<p>By default, Python's sqlite3 module does not allow a connection created in one thread to be re-used in another thread.
-This creates an issue with the way pooling works. Additionnaly, sqlorm's sessions being per-thread, there is a kind of guarantee that a connection object won't be used concurrently.
-For this reason, the default value of <code>check_same_thread</code> is set to false by default.</p>
-<p>Additional parameters are available when connecting:</p>
-<ul>
-<li><em>pragma</em>: a dict of sqlite pragmas to set on connection</li>
-<li><em>ext</em>: a list of extension modules to load on connection</li>
-<li><em>fine_tune</em>: a boolean indicating to apply fine tuned pragmas for high concurrent workloads like web servers (<a href="https://fractaledmind.github.io/2023/09/07/enhancing-rails-sqlite-fine-tuning/">explanations</a>)</li>
-</ul>
-<h3 id="postgresql">Postgresql</h3>
-<p>Some custom types are provided. You can also use a subclassed version of <code>SQL</code> with additional utils.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Text</span>
-<span class="kn">from</span> <span class="nn">sqlorm.drivers.postgresql</span> <span class="kn">import</span> <span class="n">SQL</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">JSON</span><span class="p">,</span> <span class="n">JSONB</span>
-
-<span class="k">class</span> <span class="nc">MyModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">array_col</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">Array</span><span class="p">(</span><span class="n">Text</span><span class="p">))</span>
-    <span class="n">json_col</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">JSON</span><span class="p">)</span>
-    <span class="n">jsonb_col</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">JSONB</span><span class="p">)</span>
-
-<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
-    <span class="n">rs</span> <span class="o">=</span> <span class="n">MyModel</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">MyModel</span><span class="o">.</span><span class="n">jsonb_col</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">&quot;@&gt;&quot;</span><span class="p">,</span> <span class="n">SQL</span><span class="o">.</span><span class="n">cast</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="n">JSONB</span><span class="p">)))</span> <span class="c1"># SELECT * FROM MyModel WHERE json_col @&gt; (&#39;{&quot;key&quot;: &quot;value&quot;}&#39;::jsonb)</span>
-    <span class="n">rs</span> <span class="o">=</span> <span class="n">MyModel</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyModel</span><span class="o">.</span><span class="n">select_from</span><span class="p">([</span><span class="n">MyModel</span><span class="o">.</span><span class="n">json_col</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">&quot;-&gt;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;property&quot;</span><span class="p">)]))</span> <span class="c1"># SELECT json_col-&gt;&gt;property FROM MyModel</span>
+<span class="n">SQLORMInstrumentor</span><span class="p">()</span><span class="o">.</span><span class="n">instrument</span><span class="p">(</span><span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+</code></pre></div>
+<p>You can optionally configure SQLAlchemy instrumentation to enable sqlcommenter which enriches the query with contextual information.</p>
+<div class="highlight"><pre><span></span><code><span class="n">SQLORMInstrumentor</span><span class="p">()</span><span class="o">.</span><span class="n">instrument</span><span class="p">(</span><span class="n">enable_commenter</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">commenter_options</span><span class="o">=</span><span class="p">{})</span>
 </code></pre></div>
 
 

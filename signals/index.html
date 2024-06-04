@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../schema/">
+        <link rel="prev" href="../mapper/">
       
       
-        <link rel="next" href="../instrumentation/">
+        <link rel="next" href="../schema/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -20,7 +20,7 @@
     
     
       
-        <title>Drivers - sqlorm</title>
+        <title>Signals - sqlorm</title>
       
     
     
@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#drivers" class="md-skip">
+        <a href="#signals" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Drivers
+              Signals
             
           </span>
         </div>
@@ -420,10 +420,30 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../signals/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Signals
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -432,6 +452,62 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      Engine
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#session" class="md-nav__link">
+    <span class="md-ellipsis">
+      Session
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transaction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -460,28 +536,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Drivers
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../drivers/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -490,57 +548,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#drivers" class="md-nav__link">
-    <span class="md-ellipsis">
-      Drivers
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Drivers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sqlite" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sqlite
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#postgresql" class="md-nav__link">
-    <span class="md-ellipsis">
-      Postgresql
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -580,7 +587,7 @@
                   
 
   
-    <a href="https://github.com/hyperflask/sqlorm/edit/main/docs/drivers.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/hyperflask/sqlorm/edit/main/docs/signals.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
     </a>
@@ -588,67 +595,95 @@
   
 
 
-  <h1>Drivers</h1>
-
-<h2 id="drivers">Drivers</h2>
-<p>sqlorm provides built-in support for the following databases:</p>
-<table>
-<thead>
-<tr>
-<th>Database</th>
-<th>DBAPI implementation</th>
-<th>URI scheme</th>
-<th>sqlorm overrides</th>
-<th>Required package</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>SQLite</td>
-<td><a href="https://docs.python.org/3/library/sqlite3.html">sqlite3</a></td>
-<td>sqlite://</td>
-<td>Uses <code>sqlite3.Row</code> as the default row_factory and check_same_thread=False</td>
-<td></td>
-</tr>
-<tr>
-<td>PostgreSQL</td>
-<td><a href="https://www.psycopg.org/psycopg3/docs/index.html">psycopg3</a></td>
-<td>postgresql://</td>
-<td>No overrides</td>
-<td>psycopg[binary]</td>
-</tr>
-<tr>
-<td>MySQL</td>
-<td><a href="https://dev.mysql.com/doc/connector-python/en/connector-python-introduction.html">mysql.connector</a></td>
-<td>mysql://</td>
-<td>Uses <code>MySQLCursorDict</code> as default cursor class</td>
-<td>mysql-connector-python</td>
-</tr>
-</tbody>
-</table>
-<h3 id="sqlite">Sqlite</h3>
-<p>By default, Python's sqlite3 module does not allow a connection created in one thread to be re-used in another thread.
-This creates an issue with the way pooling works. Additionnaly, sqlorm's sessions being per-thread, there is a kind of guarantee that a connection object won't be used concurrently.
-For this reason, the default value of <code>check_same_thread</code> is set to false by default.</p>
-<p>Additional parameters are available when connecting:</p>
+<h1 id="signals">Signals</h1>
+<p>Signals allow you to listen and react to events emitted by sqlorm. The <a href="https://blinker.readthedocs.io">blinker</a> lib is used to implement signals.</p>
+<h2 id="engine">Engine</h2>
+<p>The following signals exist on the <code>Engine</code> class. The sender is always the engine instance.</p>
 <ul>
-<li><em>pragma</em>: a dict of sqlite pragmas to set on connection</li>
-<li><em>ext</em>: a list of extension modules to load on connection</li>
-<li><em>fine_tune</em>: a boolean indicating to apply fine tuned pragmas for high concurrent workloads like web servers (<a href="https://fractaledmind.github.io/2023/09/07/enhancing-rails-sqlite-fine-tuning/">explanations</a>)</li>
+<li><code>connected</code>: receive <code>conn</code> (connection instance)</li>
+<li><code>pool_checkout</code>: connection checked out of the pool, receive <code>conn</code></li>
+<li><code>pool_checkin</code>: connection returned to the pool, receive <code>conn</code></li>
+<li><code>disconnected</code>: receive <code>conn</code> (connection instance)</li>
 </ul>
-<h3 id="postgresql">Postgresql</h3>
-<p>Some custom types are provided. You can also use a subclassed version of <code>SQL</code> with additional utils.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Text</span>
-<span class="kn">from</span> <span class="nn">sqlorm.drivers.postgresql</span> <span class="kn">import</span> <span class="n">SQL</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">JSON</span><span class="p">,</span> <span class="n">JSONB</span>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">Engine</span>
 
-<span class="k">class</span> <span class="nc">MyModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">array_col</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">Array</span><span class="p">(</span><span class="n">Text</span><span class="p">))</span>
-    <span class="n">json_col</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">JSON</span><span class="p">)</span>
-    <span class="n">jsonb_col</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">JSONB</span><span class="p">)</span>
+<span class="nd">@Engine</span><span class="o">.</span><span class="n">connected</span><span class="o">.</span><span class="n">connect</span>
+<span class="k">def</span> <span class="nf">on_connected</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">from_pool</span><span class="p">):</span>
+    <span class="c1"># do something</span>
+</code></pre></div>
+<h2 id="session">Session</h2>
+<p>The following signals exist on the <code>Session</code> class. The sender is always the session instance.</p>
+<ul>
+<li><code>before_commit</code></li>
+<li><code>after_commit</code></li>
+<li><code>before_rollback</code></li>
+<li><code>after_rollback</code></li>
+</ul>
+<p>Use <code>session.conn</code> to retreive the connection object (may be None if no connection have been established, use <code>session.connect()</code> in this case).</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">Session</span>
 
-<span class="k">with</span> <span class="n">engine</span><span class="p">:</span>
-    <span class="n">rs</span> <span class="o">=</span> <span class="n">MyModel</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">MyModel</span><span class="o">.</span><span class="n">jsonb_col</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">&quot;@&gt;&quot;</span><span class="p">,</span> <span class="n">SQL</span><span class="o">.</span><span class="n">cast</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="n">JSONB</span><span class="p">)))</span> <span class="c1"># SELECT * FROM MyModel WHERE json_col @&gt; (&#39;{&quot;key&quot;: &quot;value&quot;}&#39;::jsonb)</span>
-    <span class="n">rs</span> <span class="o">=</span> <span class="n">MyModel</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">MyModel</span><span class="o">.</span><span class="n">select_from</span><span class="p">([</span><span class="n">MyModel</span><span class="o">.</span><span class="n">json_col</span><span class="o">.</span><span class="n">op</span><span class="p">(</span><span class="s2">&quot;-&gt;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;property&quot;</span><span class="p">)]))</span> <span class="c1"># SELECT json_col-&gt;&gt;property FROM MyModel</span>
+<span class="nd">@Session</span><span class="o">.</span><span class="n">before_commit</span><span class="o">.</span><span class="n">connect</span>
+<span class="k">def</span> <span class="nf">on_before_commit</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="c1"># do something</span>
+</code></pre></div>
+<h2 id="transaction">Transaction</h2>
+<p>The following signals exist on the <code>Transaction</code> class. The sender is always the transaction instance.</p>
+<ul>
+<li><code>before_execute</code>: receive <code>stmt</code>, <code>params</code> and <code>many</code> (to distinguish between execute and executemany)<ul>
+<li>when called from execute: returning a cursor will stop sqlorm execution and return the cursor directly</li>
+<li>when called from executemany: returning False will stop sqlorm execution</li>
+<li>in both case, returning a tuple <code>(stmt, params)</code> will override stmt and params</li>
+</ul>
+</li>
+<li><code>after_execute</code>: receive <code>cursor</code>, <code>stmt</code>, <code>params</code> and <code>many</code></li>
+<li><code>handle_error</code>: receive <code>cursor</code>, <code>stmt</code>, <code>params</code>, <code>many</code> and <code>exc</code>:<ul>
+<li>when handling for execute: return a cursor to prevent raising the exception</li>
+<li>when handling for executemany: return True to prevent raising</li>
+</ul>
+</li>
+</ul>
+<h2 id="model">Model</h2>
+<p>The following signals exist on the <code>Model</code> class. The sender is always the model class.</p>
+<ul>
+<li><code>before_query</code>: receive <code>stmt</code> and <code>params</code> args. can override them by returning a tuple <code>(stmt, params)</code></li>
+</ul>
+<p>The following signals receive <code>obj</code> kwargs containing the model instance.
+Returning <code>False</code> from any listener will cancel the operation. Returning a value will override the statement.</p>
+<ul>
+<li><code>before_refresh</code></li>
+<li><code>before_insert</code></li>
+<li><code>before_update</code></li>
+<li><code>before_delete</code></li>
+<li><code>before_save</code> (receive a <code>is_new</code> kwargs, can only cancel operations)</li>
+</ul>
+<p>The following signals are sent only if an operation is performed. They receive the <code>obj</code> kwargs containing the model instance.</p>
+<ul>
+<li><code>after_refresh</code></li>
+<li><code>after_insert</code></li>
+<li><code>after_update</code>: receive also <code>updated</code> a boolean indicating if an update stmt was actually performed</li>
+<li><code>after_save</code></li>
+<li><code>after_delete</code></li>
+</ul>
+<p>Examples:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sqlorm</span> <span class="kn">import</span> <span class="n">Model</span>
+
+<span class="nd">@Model</span><span class="o">.</span><span class="n">before_query</span><span class="o">.</span><span class="n">connect</span>
+<span class="k">def</span> <span class="nf">on_before_query</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">stmt</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="c1"># do something</span>
+
+<span class="nd">@Model</span><span class="o">.</span><span class="n">before_query</span><span class="o">.</span><span class="n">connect_via</span><span class="p">(</span><span class="n">MyModel</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">on_my_model_before_query</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">stmt</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="c1"># do something only on before_query of MyModel</span>
+
+<span class="nd">@Model</span><span class="o">.</span><span class="n">before_insert</span><span class="o">.</span><span class="n">connect</span>
+<span class="k">def</span> <span class="nf">on_before_insert</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">stmt</span><span class="p">):</span>
+    <span class="k">return</span> <span class="kc">False</span> <span class="c1"># cancel the insert</span>
+
+<span class="nd">@Model</span><span class="o">.</span><span class="n">before_insert</span><span class="o">.</span><span class="n">connect</span>
+<span class="k">def</span> <span class="nf">on_before_insert</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">stmt</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">SQL</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">model_class</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;col&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">})</span> <span class="c1"># return custom statement</span>
 </code></pre></div>
 
 
