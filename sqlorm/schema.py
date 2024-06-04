@@ -26,7 +26,7 @@ def create_all(model_registry=None, engine=None, check_missing=False, logger=Non
             missing = False
             with ensure_transaction(engine) as tx:
                 try:
-                    tx.execute(model.find_one())
+                    model.find_one()
                 except Exception:
                     missing = True
         if missing:

@@ -5,7 +5,7 @@ from .sql import SQL, Column as SQLColumn, ColumnExpr as SQLColumnExpr
 from .engine import Engine, ensure_transaction, _signals, _signal_rv
 from .sqlfunc import is_sqlfunc, sqlfunc, fetchall, fetchone, execute, update
 from .resultset import ResultSet, CompositeResultSet
-from .types import SQLType
+from .types import SQLType, Integer
 from .mapper import (
     Mapper,
     MappedColumnMixin,
@@ -17,23 +17,27 @@ from .mapper import (
 
 class ModelMetaclass(abc.ABCMeta):
     def __new__(cls, name, bases, dct):
-        if not bases or abc.ABC in bases:
+        if len(bases) == 1 and bases[0] is abc.ABC: # BaseModel
             return super().__new__(cls, name, bases, dct)
-        dct = cls.pre_process_model_class_dict(name, bases, dct)
+        
+        model_registry = cls.find_model_registry(bases)
+        mapped_attrs = cls.process_mapped_attributes(dct)
+        cls.process_sql_methods(dct, model_registry)
         model_class = super().__new__(cls, name, bases, dct)
         cls.process_meta_inheritance(model_class)
-        return cls.post_process_model_class(model_class)
+        if abc.ABC not in bases:
+            cls.create_mapper(model_class, mapped_attrs)
+            model_class.__model_registry__.register(model_class)
+        return model_class
 
-    @classmethod
-    def pre_process_model_class_dict(cls, name, bases, dct):
-        model_registry = {}
+    def find_model_registry(bases):
         for base in bases:
-            if issubclass(base, BaseModel):
-                model_registry = base.__model_registry__
-                break
+            if hasattr(base, "__model_registry__"):
+                return base.__model_registry__
+        return ModelRegistry()
 
-        dct["table"] = SQL.Id(dct.get("__table__", dct.get("table", name.lower())))
-
+    @staticmethod
+    def process_mapped_attributes(dct):
         mapped_attrs = {}
         for name, annotation in dct.get("__annotations__", {}).items():
             primary_key = False
@@ -45,11 +49,11 @@ class ModelMetaclass(abc.ABCMeta):
                 dct[name] = mapped_attrs[name] = Column(name, annotation, primary_key=primary_key)
             elif isinstance(dct[name], Column):
                 mapped_attrs[name] = dct[name]
-                dct[name].type = SQLType.from_pytype(annotation)
+                if dct[name].type is None:
+                    dct[name].type = SQLType.from_pytype(annotation)
             elif isinstance(dct[name], Relationship):
                 # add now to keep the declaration order
                 mapped_attrs[name] = dct[name]
-
         for attr_name, attr in dct.items():
             if isinstance(attr, Column) and not attr.name:
                 # in the case of models, we allow column object to be initialized without names
@@ -58,27 +62,28 @@ class ModelMetaclass(abc.ABCMeta):
             if isinstance(attr, (Column, Relationship)) and attr_name not in mapped_attrs:
                 # not annotated attributes
                 mapped_attrs[attr_name] = attr
-                continue
-
+        return mapped_attrs
+    
+    @classmethod
+    def process_sql_methods(cls, dct, model_registry=None):
+        for attr_name, attr in dct.items():
             wrapper = type(attr) if isinstance(attr, (staticmethod, classmethod)) else False
             if wrapper:
                 # the only way to replace the wrapped function for a class/static method is before the class initialization.
                 attr = attr.__wrapped__
-            if callable(attr):
-                if is_sqlfunc(attr):
-                    dct[attr_name] = cls.make_sqlfunc_from_method(attr, wrapper, model_registry)
-
-        dct["__mapper__"] = mapped_attrs
-        return dct
+            if callable(attr) and is_sqlfunc(attr):
+                # the model registry is passed as template locals to sql func methods
+                # so model classes are available in the evaluation scope of SQLTemplate
+                dct[attr_name] = cls.make_sqlfunc_from_method(attr, wrapper, model_registry)
 
     @staticmethod
-    def make_sqlfunc_from_method(func, decorator, model_registry):
+    def make_sqlfunc_from_method(func, decorator, template_locals=None):
         doc = inspect.getdoc(func)
         accessor = "cls" if decorator is classmethod else "self"
         if doc.upper().startswith("SELECT WHERE"):
             doc = doc[7:]
         if doc.upper().startswith("WHERE"):
-            func.__doc__ = "{%s.select_from()} %s" % (accessor, doc)
+            doc = "{%s.select_from()} %s" % (accessor, doc)
         if doc.upper().startswith("INSERT INTO ("):
             doc = "INSERT INTO {%s.table} %s" % (accessor, doc[12:])
         if doc.upper().startswith("UPDATE SET"):
@@ -87,21 +92,26 @@ class ModelMetaclass(abc.ABCMeta):
             doc = "DELETE FROM {%s.table} %s" % (accessor, doc[7:])
         if "WHERE SELF" in doc.upper():
             doc = doc.replace("WHERE SELF", "WHERE {self.__mapper__.primary_key_condition(self)}")
+        func.__doc__ = doc
         if not getattr(func, "query_decorator", None) and ".select_from(" in doc:
             # because the statement does not start with SELECT, it would default to execute when using .select_from()
             func = fetchall(func)
-        # the model registry is passed as template locals to sql func methods
-        # so model classes are available in the evaluation scope of SQLTemplate
-        method = sqlfunc(func, is_method=True, template_locals=model_registry)
+        method = sqlfunc(func, is_method=True, template_locals=template_locals)
         return decorator(method) if decorator else method
 
     @staticmethod
-    def post_process_model_class(cls):
-        mapped_attrs = cls.__mapper__
+    def create_mapper(cls, mapped_attrs=None):
+        cls.table = SQL.Id(getattr(cls, "__table__", getattr(cls, "table", cls.__name__.lower())))
         cls.__mapper__ = ModelMapper(
             cls, cls.table.name, allow_unknown_columns=cls.Meta.allow_unknown_columns
         )
-        cls.__mapper__.map(mapped_attrs)
+
+        for attr_name in dir(cls):
+            if isinstance(getattr(cls, attr_name), (Column, Relationship)) and attr_name not in mapped_attrs:
+                cls.__mapper__.map(attr_name, getattr(cls, attr_name))
+        if mapped_attrs:
+            cls.__mapper__.map(mapped_attrs)
+
         cls.c = cls.__mapper__.columns  # handy shortcut
 
         auto_primary_key = cls.Meta.auto_primary_key
@@ -110,14 +120,11 @@ class ModelMetaclass(abc.ABCMeta):
                 # we force the usage of SELECT * as we auto add a primary key without any other mapped columns
                 # without doing this, only the primary key would be selected
                 cls.__mapper__.force_select_wildcard = True
-            cls.__mapper__.map(auto_primary_key, Column(auto_primary_key, primary_key=True))
-
-        cls.__model_registry__.register(cls)
-        return cls
+            cls.__mapper__.map(auto_primary_key, Column(auto_primary_key, type=cls.Meta.auto_primary_key_type, primary_key=True))
 
     @staticmethod
     def process_meta_inheritance(cls):
-        if getattr(cls.Meta, "__inherit__", True):
+        if hasattr(cls, "Meta") and getattr(cls.Meta, "__inherit__", True):
             bases_meta = ModelMetaclass.aggregate_bases_meta_attrs(cls)
             for key, value in bases_meta.items():
                 if not hasattr(cls.Meta, key):
@@ -130,7 +137,7 @@ class ModelMetaclass(abc.ABCMeta):
     def aggregate_bases_meta_attrs(cls):
         meta = {}
         for base in cls.__bases__:
-            if issubclass(base, BaseModel):
+            if hasattr(base, "Meta"):
                 if getattr(base.Meta, "__inherit__", True):
                     meta.update(ModelMetaclass.aggregate_bases_meta_attrs(base))
                 meta.update(
@@ -331,6 +338,7 @@ class BaseModel(abc.ABC, metaclass=ModelMetaclass):
         auto_primary_key: t.Optional[str] = (
             "id"  # auto generate a primary key with this name if no primary key are declared
         )
+        auto_primary_key_type: SQLType = Integer
         allow_unknown_columns: bool = True  # hydrate() will set attributes for unknown columns
 
     @classmethod

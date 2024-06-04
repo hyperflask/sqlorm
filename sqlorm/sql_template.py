@@ -10,13 +10,16 @@ class EvalBlock(SQLStr):
         self.template = template
         self.code = code
 
-    def _render(self, params):
+    def eval(self):
         return eval(self.code, self.template.eval_globals, self.template.locals)
+
+    def _render(self, params):
+        return SQL(self.eval())._render(params)
 
 
 class ParametrizedEvalBlock(EvalBlock):
     def _render(self, params):
-        return params.add(super()._render(params))
+        return params.add(self.eval())
 
 
 class SQLTemplateError(Exception):

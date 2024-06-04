@@ -60,6 +60,7 @@ def test_pool():
     assert conn in e.pool
 
     with e as tx:
+        tx.session.connect()
         assert not e.pool
         assert len(e.active_conns) == 2
         assert tx.session.conn is conn
@@ -95,7 +96,7 @@ def test_session():
     e = Engine.from_uri("sqlite://:memory:")
     with e.session() as sess:
         assert isinstance(sess, Session)
-        assert sess.conn
+        assert not sess.conn
         assert sess.engine is e
         assert not sess.virtual_tx
 
@@ -104,4 +105,5 @@ def test_session():
             assert tx.session is sess
             assert not tx.virtual
 
+        sess.connect()
         assert sess.conn

@@ -1,6 +1,7 @@
-from sqlorm import Model, SQL, Relationship, is_dirty, PrimaryKey
+from sqlorm import Model, SQL, Relationship, is_dirty, PrimaryKey, Column
 from sqlorm.mapper import Mapper
 from models import *
+import abc
 
 
 def test_model_registry():
@@ -66,6 +67,25 @@ def test_mapper():
     assert User.tasks.join_type == "LEFT JOIN"
     assert str(User.tasks.join_clause()) == "LEFT JOIN tasks ON tasks.user_id = users.id"
     assert User.tasks in User.__mapper__.relationships
+
+
+def test_inheritance():
+    class A(Model, abc.ABC):
+        col1: str
+        col2 = Column(type=int)
+        col3 = Column(type=bool)
+
+    assert not hasattr(A, "__mapper__")
+    assert isinstance(A.col1, Column)
+    assert A.col3.type.sql_type == "boolean"
+
+    class B(A):
+        col3: str
+        col4 = Column(type=int)
+
+    assert B.__mapper__
+    assert B.__mapper__.columns.names == ["col1", "col2", "col3", "col4", "id"]
+    assert B.col3.type.sql_type == "text"
 
 
 def test_find_all(engine):
@@ -194,10 +214,10 @@ def test_sql_methods(engine):
         def test_delete(cls):
             "DELETE WHERE col1 = 'foo'"
 
-    assert TestModel.find_all.sql(TestModel) == "SELECT test.id , test.col1 FROM test WHERE col1 = 'foo'"
-    assert TestModel.test_insert.sql(TestModel) == "INSERT INTO test (col1) VALUES ('bar')"
-    assert TestModel.test_insert.sql(TestModel) == "UPDATE test SET col1 = 'bar'"
-    assert TestModel.test_insert.sql(TestModel) == "DELETE FROM test WHERE col1 = 'foo'"
+    assert str(TestModel.find_all.sql(TestModel)) == "SELECT test.id , test.col1 FROM test WHERE col1 = 'foo'"
+    assert str(TestModel.test_insert.sql(TestModel)) == "INSERT INTO test (col1) VALUES ('bar')"
+    assert str(TestModel.test_update.sql(TestModel)) == "UPDATE test SET col1 = 'bar'"
+    assert str(TestModel.test_delete.sql(TestModel)) == "DELETE FROM test WHERE col1 = 'foo'"
 
 
 def test_dirty_tracking(engine):
