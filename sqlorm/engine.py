@@ -4,7 +4,6 @@ import threading
 import logging
 import inspect
 import urllib.parse
-import functools
 from blinker import Namespace
 from .sql import render, ParametrizedStmt
 from .resultset import ResultSet, CompositeResultSet, CompositionMap
@@ -579,21 +578,3 @@ def _signal_rv(signal_rv):
         if rv:
             final_rv = rv
     return final_rv
-
-
-def connect_via_engine(engine, signal, func=None):
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(sender, **kw):
-            matches = False
-            if isinstance(sender, Engine):
-                matches = sender is engine
-            elif isinstance(sender, Session):
-                matches = sender.engine is engine
-            elif isinstance(sender, Transaction):
-                matches = sender.session.engine is engine
-            if matches:
-                return func(sender, **kw)
-        signal.connect(wrapper, weak=False)
-        return wrapper
-    return decorator(func) if func else decorator
