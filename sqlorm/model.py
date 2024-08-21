@@ -397,6 +397,9 @@ class Model(BaseModel, abc.ABC):
         with_rels=None,
         with_joins=None,
         with_lazy=False,
+        order_by=None,
+        limit=None,
+        offset=None,
         **cols,
     ) -> CompositeResultSet:
         where = SQL.And([])
@@ -407,6 +410,12 @@ class Model(BaseModel, abc.ABC):
         stmt = cls.select_from(with_rels=with_rels, with_joins=with_joins, with_lazy=with_lazy)
         if where:
             stmt = stmt.where(where)
+        if order_by:
+            stmt = stmt.order_by(order_by)
+        if limit:
+            stmt = stmt.limit(limit)
+        if offset:
+            stmt = stmt.offset(offset)
         return cls.query(stmt)
 
     @classmethod
@@ -416,6 +425,7 @@ class Model(BaseModel, abc.ABC):
         with_rels=None,
         with_joins=None,
         with_lazy=False,
+        order_by=None,
         **cols,
     ):
         where = SQL.And([])
@@ -426,6 +436,8 @@ class Model(BaseModel, abc.ABC):
         stmt = cls.select_from(with_rels=with_rels, with_joins=with_joins, with_lazy=with_lazy)
         if where:
             stmt = stmt.where(where)
+        if order_by:
+            stmt = stmt.order_by(order_by)
         return cls.query(stmt.limit(1)).first()
 
     @classmethod

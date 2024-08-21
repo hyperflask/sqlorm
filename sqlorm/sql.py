@@ -74,9 +74,13 @@ class SQLStr:
         return self.op("<=", other)
 
     def __eq__(self, other):
+        if other is None:
+            return SQL(self, "IS NULL")
         return self.op("=", other)
 
     def __ne__(self, other):
+        if other is None:
+            return SQL(self, "IS NOT NULL")
         return self.op("!=", other)
 
     def __gt__(self, other):
