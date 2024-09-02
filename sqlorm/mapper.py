@@ -136,6 +136,8 @@ class Mapper:
         pk = []
         for col in self.columns:
             if col.primary_key:
+                if not hasattr(obj, col.attribute):
+                    return
                 pk.append(getattr(obj, col.attribute))
         if len(pk) > 1:
             return pk
