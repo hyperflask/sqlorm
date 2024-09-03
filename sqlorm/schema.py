@@ -82,6 +82,7 @@ def migrate(
         if from_version is not None and logger:
             logger.info(f"Resume migrations from {from_version}")
         migrations = create_migrations_from_dir(path, from_version, to_version)
+        version = None
         for version, name, filename in migrations:
             if logger:
                 logger.info(f"Executing migration {version}: {name}")
@@ -95,7 +96,7 @@ def migrate(
                 if logger:
                     logger.error("Last migration failed, ending")
                 raise
-        if use_schema_version and not save_version_after_step:
+        if not dryrun and version is not None and use_schema_version and not save_version_after_step:
             set_schema_version(version, engine)
         return version
 
