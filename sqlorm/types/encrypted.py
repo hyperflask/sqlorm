@@ -13,6 +13,8 @@ class Encrypted(SQLType):
         self.key = key
 
     def encrypt(self, raw):
+        if raw is None:
+            return None
         raw = self.pad(raw).encode()
         iv = Random.new().read(AES.block_size)
         key = self.key() if callable(self.key) else self.key
@@ -20,6 +22,8 @@ class Encrypted(SQLType):
         return base64.b64encode(iv + cipher.encrypt(raw))
 
     def decrypt(self, enc):
+        if enc is None:
+            return None
         enc = base64.b64decode(enc)
         iv = enc[:16]
         key = self.key() if callable(self.key) else self.key
