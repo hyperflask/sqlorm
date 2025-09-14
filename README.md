@@ -18,6 +18,7 @@ Sqlorm intends to provide a solution where SQL stays front and center and where 
 - Built-in SQL based migration system
 - Low coupling between different parts of the library which can be used directly with DBAPI Connections
 - Easy to understand code
+- VS Code syntax highlighting using [extension](https://marketplace.visualstudio.com/items?itemName=hyperflask.sqlorm-language-support)
 
 [Read the documentation](https://hyperflask.github.io/sqlorm)
 

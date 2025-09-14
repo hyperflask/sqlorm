@@ -122,6 +122,10 @@ with engine as tx:
     task.toggle()
 ```
 
+## Editor support
+
+VS Code syntax highlighting using [extension](https://marketplace.visualstudio.com/items?itemName=hyperflask.sqlorm-language-support)
+
 ## Acknowledgements
 
 sqlorm is inspired by the many great ORMs that already exists in Python and other languages.

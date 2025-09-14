@@ -1,0 +1,21 @@
+{
+    "scopeName": "sql-docstring.injection",
+    "injectionSelector": "L:string.quoted.docstring.multi.python",
+    "patterns": [
+        {
+            "begin": "\\b(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|WITH)\\b",
+            "end": "(?=\"\"\")|(?=''')",
+            "beginCaptures": {
+                "1": {
+                    "name": "keyword.other.sql"
+                }
+            },
+            "contentName": "meta.embedded.sql",
+            "patterns": [
+                {
+                    "include": "source.sql"
+                }
+            ]
+        }
+    ]
+}

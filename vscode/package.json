@@ -1,0 +1,22 @@
+{
+  "name": "sqlorm-language-support",
+  "displayName": "SQLORM Syntax Highlighting",
+  "description": "Highlight SQL statements inside Python function docstrings",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "grammars": [{
+      "path": "./syntaxes/injection.json",
+      "scopeName": "sql-docstring.injection",
+      "injectTo": ["source.python"],
+      "embeddedLanguages": {
+        "meta.embedded.sql": "sql"
+      }
+    }]
+  }
+}
