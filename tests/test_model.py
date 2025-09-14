@@ -89,11 +89,13 @@ def test_inheritance():
 
 
 def test_mixins():
-    class Mixin:
+    class Mixin(Model, abc.ABC):
         col1: str
         col2 = Column(type=int)
 
-    class A(Model, Mixin):
+    assert not hasattr(Mixin, "__mapper__")
+
+    class A(Mixin, Model):
         col3 = Column(type=bool)
 
     assert A.__mapper__
