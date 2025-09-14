@@ -41,12 +41,16 @@ class ModelMetaclass(abc.ABCMeta):
         mapped_attrs = {}
         for name, annotation in dct.get("__annotations__", {}).items():
             primary_key = False
+            nullable = None
             if annotation.__class__ is t._AnnotatedAlias:
                 primary_key = PrimaryKeyColumn in getattr(annotation, "__metadata__", ())
                 annotation = annotation.__args__[0]
+            if annotation.__class__ is t.Optional:
+                annotation = annotation.__args__[0]
+                nullable = True
             if name not in dct:
                 # create column object for annotations with no default values
-                dct[name] = mapped_attrs[name] = Column(name, annotation, primary_key=primary_key)
+                dct[name] = mapped_attrs[name] = Column(name, annotation, primary_key=primary_key, nullable=nullable)
             elif isinstance(dct[name], Column):
                 mapped_attrs[name] = dct[name]
                 if dct[name].type is None:
@@ -112,6 +116,10 @@ class ModelMetaclass(abc.ABCMeta):
         if mapped_attrs:
             cls.__mapper__.map(mapped_attrs)
 
+        for col in cls.__mapper__.columns:
+            if col.nullable is None:
+                col.nullable = cls.Meta.columns_default_nullable
+
         cls.c = cls.__mapper__.columns  # handy shortcut
 
         auto_primary_key = cls.Meta.auto_primary_key
@@ -120,7 +128,9 @@ class ModelMetaclass(abc.ABCMeta):
                 # we force the usage of SELECT * as we auto add a primary key without any other mapped columns
                 # without doing this, only the primary key would be selected
                 cls.__mapper__.force_select_wildcard = True
-            cls.__mapper__.map(auto_primary_key, Column(auto_primary_key, type=cls.Meta.auto_primary_key_type, primary_key=True))
+            pk_column = Column(auto_primary_key, type=cls.Meta.auto_primary_key_type, primary_key=True, nullable=False)
+            cls.__mapper__.map(auto_primary_key, pk_column)
+            setattr(cls, auto_primary_key, pk_column)
 
     @staticmethod
     def process_meta_inheritance(cls):
@@ -340,6 +350,7 @@ class BaseModel(abc.ABC, metaclass=ModelMetaclass):
         )
         auto_primary_key_type: SQLType = Integer
         allow_unknown_columns: bool = True  # hydrate() will set attributes for unknown columns
+        columns_default_nullable : bool = True
 
     @classmethod
     def bind(cls, engine: Engine):
@@ -349,6 +360,9 @@ class BaseModel(abc.ABC, metaclass=ModelMetaclass):
             (cls, abc.ABC),
             {"__engine__": engine, "__model_registry__": ModelRegistry()},
         )
+    
+    def __sql__(self):
+        return self.table.name
 
 
 class Model(BaseModel, abc.ABC):

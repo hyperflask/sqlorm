@@ -88,6 +88,18 @@ def test_inheritance():
     assert B.col3.type.sql_type == "text"
 
 
+def test_mixins():
+    class Mixin:
+        col1: str
+        col2 = Column(type=int)
+
+    class A(Model, Mixin):
+        col3 = Column(type=bool)
+
+    assert A.__mapper__
+    assert A.__mapper__.columns.names == ["col1", "col2", "col3", "id"]
+
+
 def test_find_all(engine):
     listener_called = False
 
@@ -181,7 +193,7 @@ def test_sql_methods(engine):
     assert Task.find_todos_static.query_decorator == "fetchall"
 
     with engine:
-        assert str(Task.find_todos.sql(Task)) == "SELECT tasks.id , tasks.title , tasks.completed , tasks.user_id FROM tasks WHERE not completed"
+        assert str(Task.find_todos.sql(Task)) == "SELECT tasks.id , tasks.title , tasks.completed , tasks.user_id FROM tasks WHERE not tasks.completed"
         assert str(Task.find_todos_static.sql()) == "SELECT * FROM tasks WHERE not completed"
 
         task = Task.get(2)

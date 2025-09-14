@@ -85,7 +85,7 @@ def test_column_expr():
         "expr": ColumnExpr("SELECT COUNT(*) FROM subtable WHERE subtable.id = table.id", "nb_sub")
     })
 
-    assert str(mapper.select_columns()) == "col , (SELECT COUNT(*) FROM subtable WHERE subtable.id = table.id) AS nb_sub"
+    assert str(mapper.select_columns()) == "table.col , (SELECT COUNT(*) FROM subtable WHERE subtable.id = table.id) AS nb_sub"
 
 
 def test_hydrate_new():

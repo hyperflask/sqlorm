@@ -57,8 +57,6 @@ PYTHON_TYPES_MAP.update(
     }
 )
 
-from .encrypted import Encrypted
-
 __all__ = (
     "SQLType",
     "Integer",
@@ -69,6 +67,5 @@ __all__ = (
     "Date",
     "DateTime",
     "JSON",
-    "Pickle",
-    "Encrypted"
+    "Pickle"
 )

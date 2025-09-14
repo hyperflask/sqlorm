@@ -14,10 +14,13 @@ class Task(Model):
 
     @staticmethod
     def find_todos_static():
-        "SELECT * FROM tasks WHERE not completed"
+        """SELECT * FROM tasks WHERE not completed"""
 
     def toggle(self):
-        "UPDATE tasks SET completed = not completed WHERE id = %(self.id)s RETURNING completed"
+        """
+        UPDATE tasks SET completed = not completed
+        WHERE id = %(self.id)s RETURNING completed
+        """
 
 
 class User(Model):

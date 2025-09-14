@@ -509,7 +509,7 @@ class Transaction:
             map = HydrationMap.create([model, nested])
         elif nested:
             map = CompositionMap(
-                lambda r: r.values(), {k: HydrationMap.create(v) for k, v in nested.items()}
+                lambda r: list(r.values()), {k: HydrationMap.create(v) for k, v in nested.items()}
             )
         elif not map:
             map = CompositionMap.create([loader, nested])

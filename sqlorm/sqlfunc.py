@@ -44,7 +44,7 @@ def is_sqlfunc(func):
     """Checks if func is an empty function with a python doc"""
     doc = inspect.getdoc(func)
     src = inspect.getsource(func).strip(' "\n\r')
-    return doc and src.endswith(func.__doc__) and not getattr(func, "sqlfunc", False)
+    return doc and src.endswith(func.__doc__.strip(' \n\r')) and not getattr(func, "sqlfunc", False)
 
 
 def _query_executor_builder(executor):

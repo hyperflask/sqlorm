@@ -14,15 +14,21 @@ FINE_TUNED_PRAGMAS = {
 }
 
 
+PRIMARY_KEY_SCHEMA_DEFINITION = "PRIMARY KEY AUTOINCREMENT"
+
+
 def connect(*args, **kwargs):
     pragmas = kwargs.pop("pragma", {})
     extensions = kwargs.pop("ext", None)
     fine_tune = kwargs.pop("fine_tune", False)
+    foreign_keys = kwargs.pop("foreign_keys", False)
 
     kwargs.setdefault("check_same_thread", False)  # better default to work with sqlorm pooling
     conn = sqlite3.connect(*args, **kwargs)
     conn.row_factory = sqlite3.Row
 
+    if foreign_keys:
+        pragmas["foreign_keys"] = "ON"
     if fine_tune:
         pragmas.update(FINE_TUNED_PRAGMAS)
 

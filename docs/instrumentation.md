@@ -10,7 +10,7 @@ from sqlorm.opentelemetry import SQLORMInstrumentor
 SQLORMInstrumentor().instrument(engine=engine)
 ```
 
-You can optionally configure SQLAlchemy instrumentation to enable sqlcommenter which enriches the query with contextual information.
+You can optionally configure SQLORM instrumentation to enable sqlcommenter which enriches the query with contextual information.
 
 ```py
 SQLORMInstrumentor().instrument(enable_commenter=True, commenter_options={})

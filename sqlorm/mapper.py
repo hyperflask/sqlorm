@@ -39,7 +39,7 @@ class Mapper:
             if value.__class__ is t._AnnotatedAlias:
                 primary_key = PrimaryKeyColumn in getattr(value, "__metadata__", ())
                 value = value.__args__[0]
-            mapper.columns.append(
+            mapper.map(key, 
                 Column(key, SQLType.from_pytype(value), primary_key=primary_key, attribute=key)
             )
         return mapper
@@ -58,6 +58,7 @@ class Mapper:
         if isinstance(col_or_rel, MappedColumnMixin):
             col_or_rel.attribute = attr
             col_or_rel.mapper = self
+            col_or_rel.table = self.table
             self.columns.append(col_or_rel)
         elif isinstance(col_or_rel, Relationship):
             col_or_rel.attribute = attr
@@ -296,12 +297,27 @@ class Mapper:
 
     def __repr__(self):
         return f"<Mapper({self.table} -> {self.object_class.__name__})>"
+    
+
+class _Unknown:
+    pass
+unknown = _Unknown()
 
 
 class MapperColumnList(ColumnList):
     def __init__(self, mapper):
         super().__init__([], wildcard=None)
         self.mapper = mapper
+
+    def aliased_table(self, alias=unknown):
+        if alias is unknown:
+            alias = self.mapper.table
+        return super().aliased_table(alias)
+    
+    def prefixed(self, prefix=unknown):
+        if prefix is unknown:
+            prefix = f"{self.mapper.object_class.__name__}__"
+        return super().prefixed(prefix)
 
     def get(self, name):
         for col in self:
@@ -331,6 +347,7 @@ class MappedColumnMixin:
         unique=False,
         lazy=False,
         attribute=None,
+        schema_def=None
     ):
         self.name = name
         self.table = None
@@ -344,6 +361,7 @@ class MappedColumnMixin:
         self.unique = unique
         self.lazy = lazy
         self.attribute = attribute
+        self.schema_def = schema_def
 
     def get(self, obj):
         """Returns the database value from the object, using the provided dump function if needed

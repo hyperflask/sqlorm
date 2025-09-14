@@ -1,5 +1,6 @@
 import typing as t
 from collections import namedtuple
+from collections.abc import Iterable
 
 
 def render(stmt, params=None, dbapi=None, paramstyle=None):
@@ -113,6 +114,8 @@ class SQL(SQLStr):
         for part in self.parts:
             if isinstance(part, SQLStr):
                 stmt.append(str(part._render(params)))
+            elif hasattr(part, "__sql__"):
+                stmt.append(str(part.__sql__()))
             elif part:
                 stmt.append(str(part))
         return " ".join(filter(bool, stmt))
@@ -354,8 +357,9 @@ class ColumnList(SQLStr, list):
 class List(SQLStr, list):
     """A list of SQL items"""
 
-    def __init__(self, items=None, joinstr=",", startstr="", endstr=""):
-        super().__init__(items)
+    def __init__(self, *items, joinstr=",", startstr="", endstr=""):
+        _items = items[0] if len(items) == 1 and isinstance(items[0], Iterable) else items
+        super().__init__(_items)
         self.joinstr = joinstr
         self.startstr = startstr
         self.endstr = endstr
@@ -374,18 +378,18 @@ class List(SQLStr, list):
 
 
 class And(List):
-    def __init__(self, items):
-        super().__init__(items, "AND", "(", ")")
+    def __init__(self, *items):
+        super().__init__(*items, joinstr="AND", startstr="(", endstr=")")
 
 
 class Or(List):
-    def __init__(self, items):
-        super().__init__(items, "OR", "(", ")")
+    def __init__(self, *items):
+        super().__init__(*items, joinstr="OR", startstr="(", endstr=")")
 
 
 class Tuple(List):
-    def __init__(self, items):
-        super().__init__(items, ",", "(", ")")
+    def __init__(self, *items):
+        super().__init__(*items, joinstr=",", startstr="(", endstr=")")
 
 
 class Function(SQLStr):

@@ -248,7 +248,7 @@ By default, unknown columns (ones which are not mapped), will be set as attribut
 Dirty attributes which are not mapped will also be saved in DML statements.
 
 You can thus create models with no mapped columns. However, models require a primary key to function properly.
-One will be automatically added when non are defined (named "id").
+One will be automatically added when none are defined (named "id").
 
 When no columns are mapped, `SELECT *` is used.
 

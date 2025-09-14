@@ -9,8 +9,10 @@ migrations_path = os.path.join(os.path.dirname(__file__), "migrations")
 
 
 def test_create_table():
-    assert str(create_table.sql(Task)) == "CREATE TABLE tasks ( id integer PRIMARY KEY , title text , completed boolean , user_id integer REFERENCES users(id) )"
-    assert str(create_table.sql(User)) == "CREATE TABLE users ( id integer PRIMARY KEY , email text )"
+    engine = Engine.from_uri("sqlite://:memory:")
+    with engine:
+        assert str(create_table.sql(Task)) == "CREATE TABLE tasks ( id integer PRIMARY KEY AUTOINCREMENT , title text , completed boolean , user_id integer REFERENCES users(id) )"
+        assert str(create_table.sql(User)) == "CREATE TABLE users ( id integer PRIMARY KEY AUTOINCREMENT , email text )"
 
 
 def test_create_all():
