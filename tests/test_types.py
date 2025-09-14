@@ -1,4 +1,6 @@
 from sqlorm.types import SQLType
+from sqlorm.types.encrypted import Encrypted
+import hashlib
 
 
 def test_type():
@@ -17,3 +19,11 @@ def test_type():
         __sqltype__ = "customtype"
         
     assert SQLType.from_pytype(T).sql_type == "customtype"
+
+
+def test_encrypted():
+    key = hashlib.md5(b"key").digest()
+    t = Encrypted(key)
+    assert t.sql_type == "text"
+    assert t.dumper("value") != "value"
+    assert t.loader(t.dumper("value")) == "value"
