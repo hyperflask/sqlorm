@@ -358,7 +358,7 @@ class List(SQLStr, list):
     """A list of SQL items"""
 
     def __init__(self, *items, joinstr=",", startstr="", endstr=""):
-        _items = items[0] if len(items) == 1 and isinstance(items[0], Iterable) else items
+        _items = items[0] if len(items) == 1 and not isinstance(items[0], str) and isinstance(items[0], Iterable) else items
         super().__init__(_items)
         self.joinstr = joinstr
         self.startstr = startstr
