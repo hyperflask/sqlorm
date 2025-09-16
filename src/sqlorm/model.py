@@ -256,7 +256,7 @@ class Relationship(MappedRelationship):
 
     @property
     def __isabstractmethod__(self):
-        # compatibility between this description __getattr__ usage and abc.ABC
+        # compatibility between this descriptor __getattr__ usage and abc.ABC
         return False
 
     def __get__(self, obj, owner=None):
@@ -267,7 +267,14 @@ class Relationship(MappedRelationship):
         return obj.__dict__[self.attribute]
 
     def __set__(self, obj, value):
-        obj.__dict__[self.attribute] = value if self.single else self.list_class(obj, self, value)
+        if self.single:
+            obj.__dict__[self.attribute] = value
+            self.update_related_objs(obj, value)
+            flag_dirty_attr(obj, self.source_attr)
+        else:
+            obj.__dict__[self.attribute] = self.list_class(obj, self, [])
+            for item in value:
+                obj.__dict__[self.attribute].append(item) # ensure target_attr is set
 
     def is_loaded(self, obj):
         return self.attribute in obj.__dict__
@@ -275,10 +282,14 @@ class Relationship(MappedRelationship):
     def fetch(self, obj):
         """Fetches the list of related objects from the database and loads it in the object"""
         r = self.target.query(self.select_from_target(obj))
-        self.__set__(obj, r.first() if self.single else r.all())
+        obj.__dict__[self.attribute] = r.first() if self.single else self.list_class(obj, self, r.all())
+
+    def load(self, obj, values):
+        value = values[self.attribute]
+        obj.__dict__[self.attribute] = value if self.single else self.list_class(obj, self, value)
 
 
-class RelatedObjectsList(object):
+class RelatedObjectsList:
     def __init__(self, obj, relationship, items):
         self.obj = obj
         self.relationship = relationship
@@ -297,20 +308,12 @@ class RelatedObjectsList(object):
         return item in self.items
 
     def append(self, item):
-        target_attr = self.relationship.target_attr
-        if not target_attr:
-            raise MapperError(
-                f"Missing target_attr on relationship '{self.relationship.attribute}'"
-            )
-        setattr(item, target_attr, getattr(self.obj, self.relationship.source_attr))
+        self.relationship.update_related_objs(self.obj, item)
+        flag_dirty_attr(item, self.relationship.target_attr)
 
     def remove(self, item):
-        target_attr = self.relationship.target_attr
-        if not target_attr:
-            raise MapperError(
-                f"Missing target_attr on relationship '{self.relationship.attribute}'"
-            )
-        setattr(item, target_attr, None)
+        self.relationship.update_related_objs(None, item)
+        flag_dirty_attr(item, self.relationship.target_attr)
 
 
 def flag_dirty_attr(obj, attr):
@@ -367,6 +370,7 @@ class BaseModel(abc.ABC, metaclass=ModelMetaclass):
 
 class Model(BaseModel, abc.ABC):
     """Our standard model class with CRUD methods"""
+    __resultset_class__ = CompositeResultSet
 
     class Meta:
         insert_update_dirty_only: bool = (
@@ -397,12 +401,12 @@ class Model(BaseModel, abc.ABC):
         with ensure_transaction(cls.__engine__) as tx:
             rv = _signal_rv(cls.before_query.send(cls, stmt=stmt, params=params))
             if rv is False:
-                return ResultSet(None)
+                return cls.__resultset_class__(None)
             if isinstance(rv, ResultSet):
                 return rv
             if isinstance(rv, tuple):
                 stmt, params = rv
-            return tx.fetchhydrated(cls, stmt, params)
+            return tx.fetchhydrated(cls, stmt, params, resultset_class=cls.__resultset_class__)
 
     @classmethod
     def find_all(
@@ -473,8 +477,11 @@ class Model(BaseModel, abc.ABC):
             setattr(self, k, v)
 
     def __setattr__(self, name, value):
-        self.__dict__[name] = value
-        flag_dirty_attr(self, name)
+        if isinstance(getattr(self.__class__, name, None), (ModelColumnMixin, Relationship)):
+            super().__setattr__(name, value)
+        else:
+            self.__dict__[name] = value
+            flag_dirty_attr(self, name)
 
     def refresh(self, **select_kwargs):
         stmt = self.__mapper__.select_by_pk(self.__mapper__.get_primary_key(self), **select_kwargs)

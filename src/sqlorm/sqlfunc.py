@@ -42,6 +42,8 @@ def sqlfunc(func=None, template_locals=None, **kwargs):
 
 def is_sqlfunc(func):
     """Checks if func is an empty function with a python doc"""
+    if not inspect.isfunction(func):
+        return False
     doc = inspect.getdoc(func)
     src = inspect.getsource(func).strip(' "\n\r')
     return doc and src.endswith(func.__doc__.strip(' \n\r')) and not getattr(func, "sqlfunc", False)

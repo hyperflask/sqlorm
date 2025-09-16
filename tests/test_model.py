@@ -175,20 +175,6 @@ def test_refresh(engine):
         assert listener_called == 2
 
 
-def test_relationships(engine):
-    with engine:
-        user = User.get(1)
-        assert not User.tasks.is_loaded(user)
-        assert len(user.tasks) == 1
-        assert User.tasks.is_loaded(user)
-        assert isinstance(user.tasks[0], Task)
-        assert user.tasks[0].id == 1
-
-        user = User.get(1, with_rels=True)
-        assert User.tasks.is_loaded(user)
-        assert len(user.tasks) == 1
-
-
 def test_sql_methods(engine):
     assert Task.toggle.query_decorator == "update"
     assert Task.find_todos.query_decorator == "fetchall"
@@ -386,3 +372,37 @@ def test_delete(engine):
 
         user = User.get(4)
         assert not user
+
+
+def test_relationships_many(engine):
+    with engine:
+        user = User.get(1)
+        assert not User.tasks.is_loaded(user)
+        assert len(user.tasks) == 1
+        assert User.tasks.is_loaded(user)
+        assert isinstance(user.tasks[0], Task)
+        assert user.tasks[0].id == 1
+
+        user = User.get(1, with_rels=True)
+        assert User.tasks.is_loaded(user)
+        assert len(user.tasks) == 1
+
+        user = User.get(1)
+        task = Task()
+        user.tasks.append(task)
+        assert task.user_id == user.id
+        user.tasks.remove(task)
+        assert task.user_id is None
+
+
+def test_relationships_single(engine):
+    with engine:
+        task = Task.get(1)
+        assert not Task.user.is_loaded(task)
+        assert task.user.id == 1
+        assert Task.user.is_loaded(task)
+
+        user = User.get(1)
+        task = Task()
+        task.user = user
+        assert task.user_id == user.id

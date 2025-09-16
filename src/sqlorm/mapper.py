@@ -165,6 +165,7 @@ class Mapper:
     def hydrate(self, obj, data, with_unknown=None):
         """Populates a model object with data from the db"""
         attrs = set()
+        relnames = {r.attribute: r for r in self.relationships}
         for key in (
             data.keys()
         ):  # avoid using .items() as some DBAPI returned objects only provide keys() (eg: sqlite3)
@@ -172,6 +173,9 @@ class Mapper:
                 col = self.columns[key]
                 col.load(obj, data)
                 key = col.attribute
+            elif key in relnames:
+                rel = relnames[key]
+                rel.load(obj, data)
             elif with_unknown or with_unknown is None and self.allow_unknown_columns:
                 obj.__dict__[key] = data[key]  # ensure that no custom setter are used
             else:
@@ -414,8 +418,8 @@ class Relationship:
         self,
         target_mapper,
         target_col=None,
-        target_attr=None,
         source_col=None,
+        target_attr=None,
         source_attr=None,
         join_type="LEFT JOIN",
         join_condition=None,
@@ -424,7 +428,7 @@ class Relationship:
         lazy=True,
     ):
         self._target_mapper = target_mapper
-        self.target_col = target_col
+        self._target_col = target_col
         self._target_attr = target_attr
         self._source_col = source_col
         self._source_attr = source_attr
@@ -442,6 +446,16 @@ class Relationship:
     @property
     def target_table(self):
         return self.target_mapper.table
+
+    @property
+    def target_col(self):
+        if self._target_col:
+            return self._target_col
+        if not self.single:
+            raise MapperError(f"Missing target_col on relationship '{self.attribute}'")
+        if self.target_mapper.primary_key:
+            return self.target_mapper.primary_key.name
+        return "id"
 
     @property
     def target_attr(self):
@@ -493,8 +507,6 @@ class Relationship:
             )
         elif self._join_condition:
             return self._join_condition
-        if not self.target_col:
-            raise MapperError(f"Missing target_col on relationship '{self.attribute}'")
         return SQL.Col(self.target_col, table=target_alias) == SQL.Col(
             self.source_col, table=source_alias
         )
@@ -538,6 +550,23 @@ class Relationship:
         return SQL.delete_from(self.target_table).where(
             SQL.Col(self.target_col) == SQL.Param(getattr(source_obj, source_attr))
         )
+    
+    def update_related_objs(self, source_obj, target_obj):
+        target_attr = self.target_attr
+        if not target_attr:
+            raise MapperError(
+                f"Missing target_attr on relationship '{self.attribute}'"
+            )
+        if self.single:
+            setattr(source_obj, self.source_attr, getattr(target_obj, target_attr) if target_obj else None)
+        else:
+            setattr(target_obj, target_attr, None if source_obj is None else getattr(source_obj, self.source_attr, None))
+
+    def load(self, obj, values):
+        """Sets the object attribute from the database row, using the provided load function if needed
+        (used by Mapper.hydrate())
+        """
+        obj.__dict__[self.attribute] = values[self.attribute]
 
     def __repr__(self):
         return f"<Relationship({self.attribute})>"
@@ -552,14 +581,18 @@ class HydratedResultSet(ResultSet):
 
 
 class HydrationMap(CompositionMap):
-    def __init__(self, mapper, nested=None, single=False):
+    def __init__(self, mapper, nested=None, single=False, _already_visited=None):
         if not isinstance(mapper, Mapper):
             mapper = Mapper.from_class(mapper)
+        if _already_visited is None:
+            _already_visited = set()
         rowid = mapper.primary_key.name if mapper.primary_key else None
         _nested = {
-            r.attribute: HydrationMap(r.target_mapper, single=r.single)
+            r.attribute: HydrationMap(r.target_mapper, single=r.single, _already_visited={mapper} | _already_visited)
             for r in mapper.relationships
+            if r.target_mapper not in _already_visited
         }
+        _already_visited.add(mapper)
         if nested:
             _nested.update({k: HydrationMap.create(v) for k, v in nested.items()})
         super().__init__(mapper.hydrate_new, _nested, rowid, single)

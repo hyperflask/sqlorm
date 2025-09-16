@@ -7,6 +7,7 @@ class Task(Model):
     title: str
     done: bool = Column("completed")
     user_id: Integer = Column(references="users(id)")
+    user = Relationship("User", "id", "user_id", single=True)
 
     @classmethod
     def find_todos(cls):

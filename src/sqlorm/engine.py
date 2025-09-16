@@ -465,19 +465,19 @@ class Transaction:
         self.after_execute.send(self, cursor=cur, stmt=stmt, params=seq_of_parameters, many=True)
         cur.close()
 
-    def fetch(self, stmt, params=None, model=None, obj=None, loader=None):
+    def fetch(self, stmt, params=None, model=None, obj=None, loader=None, resultset_class=None):
         cursor = self.cursor(stmt, params)
 
         if obj and not model:
             model = obj.__class__
         if model:
-            rs = HydratedResultSet(cursor, model)
+            rs = (resultset_class or HydratedResultSet)(cursor, model)
             if obj:
                 rs.mapper.hydrate(obj, rs.first(with_loader=False))
                 return obj
             return rs
 
-        return ResultSet(cursor, loader)
+        return (resultset_class or ResultSet)(cursor, loader)
 
     def fetchall(self, stmt, params=None, **fetch_kwargs):
         return self.fetch(stmt, params, **fetch_kwargs).all()
@@ -501,6 +501,7 @@ class Transaction:
         obj=None,
         map=None,
         separator=None,
+        resultset_class=CompositeResultSet,
     ):
         if obj and not model:
             model = obj.__class__
@@ -514,7 +515,7 @@ class Transaction:
         elif not map:
             map = CompositionMap.create([loader, nested])
 
-        rs = CompositeResultSet(
+        rs = resultset_class(
             self.cursor(stmt, params), map, separator or self.default_composite_separator
         )
         if obj:
