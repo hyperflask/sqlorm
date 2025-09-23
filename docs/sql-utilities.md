@@ -74,6 +74,21 @@ Useful shortcuts:
 - `SQL.update()` instead of `SQL().update()`
 - `SQL.delete_from()` instead of `SQL().delete_from()`
 
+## Query builder
+
+A query builder for SELECT statements, built on top of the `SQL` class, is provided.
+
+```py
+from sqlorm import QueryBuilder
+query = QueryBuilder().from_("table").where(col="value").where(SQL("col") >= 1)
+```
+
+It is aware of the different parts of the query and will treat them differently.
+
+ - `builder.select()`, `.join()`, `.where()` will add expressions, all other parts will be replaced when called
+ - If `.select()` is not called, `SELECT *` is used
+ - Keyword arguments can be used with `.where()` to generate equal comparisons
+
 ## Handling list of SQL pieces
 
 Use `SQL.List` to manage lists of `SQL` objects. A few subclasses exists:

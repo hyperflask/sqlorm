@@ -4,6 +4,7 @@ import threading
 import logging
 import inspect
 import urllib.parse
+import random
 from blinker import Namespace
 from .sql import render, ParametrizedStmt
 from .resultset import ResultSet, CompositeResultSet, CompositionMap
@@ -152,16 +153,68 @@ class Engine:
             session.close()
 
     def __enter__(self):
-        if session_context.top:
+        if session_context.top and session_context.top.engine == self:
             return session_context.top.__enter__()
-        session = self.make_session()
+        session = self.make_session(close_after_tx=True)
         return session.__enter__()
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        session = session_context.top
-        session.__exit__(exc_type, exc_value, exc_tb)
-        if not session.transactions:
-            session.close()
+        session_context.top.__exit__(exc_type, exc_value, exc_tb)
+
+
+class EngineDispatcher:
+    def __init__(self, fallback=None, default_tag='default'):
+        self._engines = []
+        self.default_tag = default_tag
+        self.fallback = default_tag if fallback is None else fallback
+
+    def register(self, engine, tags=None, default=False):
+        tags = tags or []
+        if default:
+            tags.append(self.default_tag)
+        self._engines.append((engine, tags))
+
+    @property
+    def engines(self):
+        return [e for e, tags in self.engines]
+
+    @property
+    def tags(self):
+        return list(set([t for e, tags in self.engines for t in tags]))
+
+    def select_all(self, tag=None):
+        if not tag and self.default_tag:
+            tag = self.default_tag
+        found = []
+        for engine, tags in self._engines:
+            if not tag or tag in tags:
+                found.append(engine)
+        if found:
+            return found
+        if self.fallback is True:
+            return self.engines
+        if self.fallback:
+            return self.select_all(self.fallback)
+        raise EngineError("No engines found")
+
+    def select(self, tag=None):
+        return random.choice(self.select_all(tag))
+    
+    def session(self, tag=None, **kwargs):
+        return self.select(tag).session(**kwargs)
+    
+    def disconnect_all(self):
+        for engine in self.engines:
+            engine.disconnect_all()
+
+    def __getattr__(self, tag):
+        return self.select(tag)
+    
+    def __enter__(self):
+        return self.select().__enter__()
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        session_context.top.__exit__(exc_type, exc_value, exc_tb)
 
 
 class EngineError(Exception):
@@ -258,6 +311,7 @@ class Session:
         dbapi_conn=None,
         auto_close_conn=None,
         virtual_tx=False,
+        close_after_tx=False,
         logger=None,
         logger_level=None,
         engine=None,
@@ -274,6 +328,7 @@ class Session:
         self.conn = dbapi_conn
         self.auto_close_conn = not bool(dbapi_conn) if auto_close_conn is None else auto_close_conn
         self.virtual_tx = virtual_tx
+        self.close_after_tx = close_after_tx
         self.logger = logger
         self.logger_level = logger_level
         self.transactions = []
@@ -344,6 +399,8 @@ class Session:
         tx.__exit__(exc_type, exc_value, exc_tb)
         if not self.transactions:
             session_context.pop()
+            if self.close_after_tx:
+                self.close()
 
     @property
     def transaction(self):

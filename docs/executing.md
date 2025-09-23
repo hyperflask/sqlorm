@@ -61,7 +61,7 @@ There are a few shortcut methods on the transaction:
 ```python
 with engine as tx:
     task_row = tx.fetch("SELECT * FROM tasks WHERE id = ?", [1]).first()
-    task_row = tx.fetchone("SELECT * FROM tasks WHERE id = ?", [1]) # same as line before
+    task_row = tx.fetchone("SELECT * FROM tasks WHERE id = ?", [1]) # same as previous line
 
     for row in tx.fetch("SELECT * FROM tasks"):
         print(row)

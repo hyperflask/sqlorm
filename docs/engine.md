@@ -57,3 +57,33 @@ Connections are pooled and re-used by default. You can disabled this behavior by
 `max_pool_conns` can also be used to define the maximum number of connections to start.
 
 Use `engine.disconnect_all()` to close all connections.
+
+## Engine dispatcher
+
+Multiple engines can be used at the same time. `EngineDispatcher` makes it easy to select engines based on matching tags.
+
+Register engines on the dispatcher using `dispatcher.register(engine, ["tag1", "tag2"])`.
+
+Select one engine using `dispatcher.tag_name`. If multiple engines matche a tag, one is randomly selected.
+
+```py
+from sqlorm import EngineDispatcher
+
+dispatcher = EngineDispatcher()
+dispatcher.register(Engine.from_uri("postgresql://primary"), default=True) # there can be multiple default engines
+dispatcher.register(Engine.from_uri("postgresql://replica1"), ["readonly"])
+dispatcher.register(Engine.from_uri("postgresql://replica2"), ["readonly"])
+
+with dispatcher:
+    # uses default engine (ie. primary)
+
+with dispatcher.readonly:
+    # uses a randomly selected engines from the one matching the readonly tag (ie. replica1 or replica2)
+```
+
+The context behaves the same as a context from an Engine, ie. starting a transaction. To start a session instead, use `dispatcher.session(tag_name)`.
+
+By default, if no engines match the given tag, it will fallback on the default. This can be changed using the `fallback` argument of the `EngineDispatcher` constructor.
+Pass `False` to disable fallback or a tag name to fallback to a specific tag.
+
+Use `dispatcher.disconnect_all()` to close all connections across all engines.

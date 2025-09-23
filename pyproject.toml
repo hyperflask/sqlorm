@@ -1,6 +1,6 @@
 [project]
 name = "sqlorm-py"
-version = "0.3.1"
+version = "0.4.0"
 description = "A new kind or ORM that do not abstract away your database or SQL queries."
 authors = [
     {"name" = "Maxime Bouroumeau-Fuseau", email = "maxime.bouroumeau@gmail.com"}

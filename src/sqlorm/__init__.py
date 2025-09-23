@@ -1,6 +1,7 @@
 from .engine import (
     Engine,
     EngineError,
+    EngineDispatcher,
     Session,
     SessionError,
     Transaction,
