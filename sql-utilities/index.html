@@ -457,6 +457,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#query-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query builder
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#handling-list-of-sql-pieces" class="md-nav__link">
     <span class="md-ellipsis">
       Handling list of SQL pieces
@@ -619,6 +628,28 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integrations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -697,6 +728,17 @@
 <li><code>SQL.insert_into()</code> instead of <code>SQL().insert_into()</code></li>
 <li><code>SQL.update()</code> instead of <code>SQL().update()</code></li>
 <li><code>SQL.delete_from()</code> instead of <code>SQL().delete_from()</code></li>
+</ul>
+<h2 id="query-builder">Query builder</h2>
+<p>A query builder for SELECT statements, built on top of the <code>SQL</code> class, is provided.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sqlorm</span><span class="w"> </span><span class="kn">import</span> <span class="n">QueryBuilder</span>
+<span class="n">query</span> <span class="o">=</span> <span class="n">QueryBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">from_</span><span class="p">(</span><span class="s2">&quot;table&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">col</span><span class="o">=</span><span class="s2">&quot;value&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">SQL</span><span class="p">(</span><span class="s2">&quot;col&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<p>It is aware of the different parts of the query and will treat them differently.</p>
+<ul>
+<li><code>builder.select()</code>, <code>.join()</code>, <code>.where()</code> will add expressions, all other parts will be replaced when called</li>
+<li>If <code>.select()</code> is not called, <code>SELECT *</code> is used</li>
+<li>Keyword arguments can be used with <code>.where()</code> to generate equal comparisons</li>
 </ul>
 <h2 id="handling-list-of-sql-pieces">Handling list of SQL pieces</h2>
 <p>Use <code>SQL.List</code> to manage lists of <code>SQL</code> objects. A few subclasses exists:</p>

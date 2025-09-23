@@ -634,6 +634,28 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integrations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -707,7 +729,7 @@ There are a few shortcut methods on the transaction:</p>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">tx</span><span class="p">:</span>
     <span class="n">task_row</span> <span class="o">=</span> <span class="n">tx</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM tasks WHERE id = ?&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-    <span class="n">task_row</span> <span class="o">=</span> <span class="n">tx</span><span class="o">.</span><span class="n">fetchone</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM tasks WHERE id = ?&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># same as line before</span>
+    <span class="n">task_row</span> <span class="o">=</span> <span class="n">tx</span><span class="o">.</span><span class="n">fetchone</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM tasks WHERE id = ?&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># same as previous line</span>
 
     <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tx</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM tasks&quot;</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>

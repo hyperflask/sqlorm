@@ -355,6 +355,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#engine-dispatcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      Engine dispatcher
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -583,6 +592,28 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../integrations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integrations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -652,6 +683,27 @@ To close a connection use <code>engine.disconnect(conn)</code>.</p>
 <p>Connections are pooled and re-used by default. You can disabled this behavior by using <code>pool=False</code> in the engine constructor.
 <code>max_pool_conns</code> can also be used to define the maximum number of connections to start.</p>
 <p>Use <code>engine.disconnect_all()</code> to close all connections.</p>
+<h2 id="engine-dispatcher">Engine dispatcher</h2>
+<p>Multiple engines can be used at the same time. <code>EngineDispatcher</code> makes it easy to select engines based on matching tags.</p>
+<p>Register engines on the dispatcher using <code>dispatcher.register(engine, ["tag1", "tag2"])</code>.</p>
+<p>Select one engine using <code>dispatcher.tag_name</code>. If multiple engines matche a tag, one is randomly selected.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sqlorm</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineDispatcher</span>
+
+<span class="n">dispatcher</span> <span class="o">=</span> <span class="n">EngineDispatcher</span><span class="p">()</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Engine</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="s2">&quot;postgresql://primary&quot;</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># there can be multiple default engines</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Engine</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="s2">&quot;postgresql://replica1&quot;</span><span class="p">),</span> <span class="p">[</span><span class="s2">&quot;readonly&quot;</span><span class="p">])</span>
+<span class="n">dispatcher</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Engine</span><span class="o">.</span><span class="n">from_uri</span><span class="p">(</span><span class="s2">&quot;postgresql://replica2&quot;</span><span class="p">),</span> <span class="p">[</span><span class="s2">&quot;readonly&quot;</span><span class="p">])</span>
+
+<span class="k">with</span> <span class="n">dispatcher</span><span class="p">:</span>
+    <span class="c1"># uses default engine (ie. primary)</span>
+
+<span class="k">with</span> <span class="n">dispatcher</span><span class="o">.</span><span class="n">readonly</span><span class="p">:</span>
+    <span class="c1"># uses a randomly selected engines from the one matching the readonly tag (ie. replica1 or replica2)</span>
+</code></pre></div>
+<p>The context behaves the same as a context from an Engine, ie. starting a transaction. To start a session instead, use <code>dispatcher.session(tag_name)</code>.</p>
+<p>By default, if no engines match the given tag, it will fallback on the default. This can be changed using the <code>fallback</code> argument of the <code>EngineDispatcher</code> constructor.
+Pass <code>False</code> to disable fallback or a tag name to fallback to a specific tag.</p>
+<p>Use <code>dispatcher.disconnect_all()</code> to close all connections across all engines.</p>
 
 
 

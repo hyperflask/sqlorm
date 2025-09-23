@@ -9,10 +9,8 @@
       
       
       
-        <link rel="prev" href="../drivers/">
+        <link rel="prev" href="../instrumentation/">
       
-      
-        <link rel="next" href="../integrations/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -20,7 +18,7 @@
     
     
       
-        <title>Instrumentation - sqlorm</title>
+        <title>Integrations - sqlorm</title>
       
     
     
@@ -72,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#instrumentation" class="md-skip">
+        <a href="#integrations" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Instrumentation
+              Integrations
             
           </span>
         </div>
@@ -505,6 +503,28 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../instrumentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Instrumentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -517,30 +537,20 @@
         
       
       
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
   
   
   <span class="md-ellipsis">
-    Instrumentation
+    Integrations
     
   </span>
   
 
-      </a>
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../integrations/" class="md-nav__link">
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -551,6 +561,35 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#flask" class="md-nav__link">
+    <span class="md-ellipsis">
+      Flask
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -571,7 +610,7 @@
 
 
   
-    <a href="https://github.com/hyperflask/sqlorm/edit/main/docs/instrumentation.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/hyperflask/sqlorm/edit/main/docs/integrations.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"/></svg>
     </a>
@@ -579,16 +618,9 @@
   
 
 
-<h1 id="instrumentation">Instrumentation</h1>
-<p>SQLORM can be instrumented using OpenTelemetry.</p>
-<p>It supports automatic instrumentation or can be enabled manually:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">sqlorm.opentelemetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLORMInstrumentor</span>
-
-<span class="n">SQLORMInstrumentor</span><span class="p">()</span><span class="o">.</span><span class="n">instrument</span><span class="p">(</span><span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
-</code></pre></div>
-<p>You can optionally configure SQLORM instrumentation to enable sqlcommenter which enriches the query with contextual information.</p>
-<div class="highlight"><pre><span></span><code><span class="n">SQLORMInstrumentor</span><span class="p">()</span><span class="o">.</span><span class="n">instrument</span><span class="p">(</span><span class="n">enable_commenter</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">commenter_options</span><span class="o">=</span><span class="p">{})</span>
-</code></pre></div>
+<h1 id="integrations">Integrations</h1>
+<h2 id="flask">Flask</h2>
+<p>See <a href="https://github.com/hyperflask/flask-sqlorm">Flask-SQLORM</a>.</p>
 
 
 
