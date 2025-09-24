@@ -19,6 +19,8 @@ Additional parameters are available when connecting:
  - *pragma*: a dict of sqlite pragmas to set on connection
  - *ext*: a list of extension modules to load on connection
  - *fine_tune*: a boolean indicating to apply fine tuned pragmas for high concurrent workloads like web servers ([explanations](https://fractaledmind.github.io/2023/09/07/enhancing-rails-sqlite-fine-tuning/))
+ - *foreign_keys*: boolean indicating if foreign keys should be enforced (sqlite default is False)
+ - *ensure_path*: boolean indicating if the driver should ensure that the database file's directory exists
 
 ### Postgresql
 

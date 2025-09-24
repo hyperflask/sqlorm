@@ -17,14 +17,19 @@ FINE_TUNED_PRAGMAS = {
 PRIMARY_KEY_SCHEMA_DEFINITION = "PRIMARY KEY AUTOINCREMENT"
 
 
-def connect(*args, **kwargs):
+def connect(filename, *args, **kwargs):
     pragmas = kwargs.pop("pragma", {})
     extensions = kwargs.pop("ext", None)
     fine_tune = kwargs.pop("fine_tune", False)
     foreign_keys = kwargs.pop("foreign_keys", False)
+    ensure_path = kwargs.pop("ensure_path", False)
+
+    if ensure_path and filename != ":memory:":
+        import os
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
 
     kwargs.setdefault("check_same_thread", False)  # better default to work with sqlorm pooling
-    conn = sqlite3.connect(*args, **kwargs)
+    conn = sqlite3.connect(filename, *args, **kwargs)
     conn.row_factory = sqlite3.Row
 
     if foreign_keys:
