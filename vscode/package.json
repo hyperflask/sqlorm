@@ -1,7 +1,11 @@
 {
   "name": "sqlorm-language-support",
-  "displayName": "SQLORM Syntax Highlighting",
+  "displayName": "Python SQLORM Syntax Highlighting",
   "description": "Highlight SQL statements inside Python function docstrings",
+  "publisher": "hyperflask",
+  "repository": {
+    "url": "https://github.com/hyperflask/sqlorm"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.96.0"
