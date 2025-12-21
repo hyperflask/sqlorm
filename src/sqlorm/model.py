@@ -1,5 +1,7 @@
 import abc
+import sys
 import typing as t
+from typing import get_type_hints, get_origin, get_args
 import inspect
 from .sql import SQL, Column as SQLColumn, ColumnExpr as SQLColumnExpr
 from .engine import Engine, ensure_transaction, _signals, _signal_rv
@@ -38,16 +40,42 @@ class ModelMetaclass(abc.ABCMeta):
 
     @staticmethod
     def process_mapped_attributes(dct):
+        # start of fix for resolving type annotations in later Python versions
+        # https://github.com/hyperflask/sqlorm/issues/1
+        module_name = dct.get("__module__", None)
+        globalns = sys.modules[module_name].__dict__ if module_name and module_name in sys.modules else {}
+        raw_annotations = dct.get("__annotations__", {}) or {}
+        try:
+            annotations = get_type_hints(
+                type("Tmp", (), {"__annotations__": raw_annotations}),
+                globalns=globalns,
+                localns=None,
+                include_extras=True,
+            )
+        except Exception:
+            annotations = raw_annotations
+
         mapped_attrs = {}
-        for name, annotation in dct.get("__annotations__", {}).items():
+        for name, annotation in annotations.items():
             primary_key = False
             nullable = None
-            if annotation.__class__ is t._AnnotatedAlias:
-                primary_key = PrimaryKeyColumn in getattr(annotation, "__metadata__", ())
-                annotation = annotation.__args__[0]
-            if annotation.__class__ is t.Optional:
-                annotation = annotation.__args__[0]
-                nullable = True
+
+            if get_origin(annotation) is t.Annotated:
+                ann_args = get_args(annotation)
+                base = ann_args[0] if ann_args else annotation
+                meta = ann_args[1:] if len(ann_args) > 1 else ()
+                primary_key = PrimaryKeyColumn in meta
+                annotation = base
+
+            if get_origin(annotation) is t.Union:
+                args = get_args(annotation)
+                if type(None) in args:
+                    non_none = [a for a in args if a is not type(None)]
+                    annotation = non_none[0] if non_none else args[0]
+                    nullable = True
+
+            # end of https://github.com/hyperflask/sqlorm/issues/1 fix
+
             if name not in dct:
                 # create column object for annotations with no default values
                 dct[name] = mapped_attrs[name] = Column(name, annotation, primary_key=primary_key, nullable=nullable)
