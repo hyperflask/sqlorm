@@ -5,6 +5,7 @@ import logging
 import inspect
 import urllib.parse
 import random
+import typing as t
 from blinker import Namespace
 from .sql import render, ParametrizedStmt
 from .resultset import ResultSet, CompositeResultSet, CompositionMap
@@ -38,7 +39,7 @@ class Engine:
     disconnected = _signals.signal("disconnected")
 
     @classmethod
-    def from_uri(cls, uri, **kwargs):
+    def from_uri(cls, uri, **kwargs) -> "Engine":
         module, args, _kwargs = parse_uri(uri)
         _kwargs.update(kwargs)
         engine = cls.from_dbapi(module, *args, **_kwargs)
@@ -46,7 +47,7 @@ class Engine:
         return engine
 
     @classmethod
-    def from_dbapi(cls, dbapi, *connect_args, **kwargs):
+    def from_dbapi(cls, dbapi, *connect_args, **kwargs) -> "Engine":
         logger = kwargs.pop("logger", None)
         logger_level = kwargs.pop("logger_level", "debug")
         pool = kwargs.pop("pool", True)
@@ -175,14 +176,14 @@ class EngineDispatcher:
         self._engines.append((engine, tags))
 
     @property
-    def engines(self):
-        return [e for e, tags in self.engines]
+    def engines(self) -> t.List[Engine]:
+        return [e for e, tags in self._engines]
 
     @property
-    def tags(self):
-        return list(set([t for e, tags in self.engines for t in tags]))
+    def tags(self) -> t.List[str]:
+        return list(set([t for e, tags in self._engines for t in tags]))
 
-    def select_all(self, tag=None):
+    def select_all(self, tag=None) -> t.List[Engine]:
         if not tag and self.default_tag:
             tag = self.default_tag
         found = []
@@ -197,17 +198,17 @@ class EngineDispatcher:
             return self.select_all(self.fallback)
         raise EngineError("No engines found")
 
-    def select(self, tag=None):
+    def select(self, tag=None) -> "Engine":
         return random.choice(self.select_all(tag))
     
-    def session(self, tag=None, **kwargs):
+    def session(self, tag=None, **kwargs) -> "Session":
         return self.select(tag).session(**kwargs)
     
     def disconnect_all(self):
         for engine in self.engines:
             engine.disconnect_all()
 
-    def __getattr__(self, tag):
+    def __getattr__(self, tag) -> "Engine":
         return self.select(tag)
     
     def __enter__(self):
@@ -234,7 +235,7 @@ class _SessionContext:
         return self.locals.stack
 
     @property
-    def top(self):
+    def top(self) -> t.Optional["Session"]:
         if self.stack:
             return self.stack[-1]
 
@@ -256,7 +257,7 @@ class _SessionContext:
 session_context = _SessionContext()
 
 
-def get_current_session():
+def get_current_session() -> "Session":
     return session_context.top
 
 
@@ -300,6 +301,7 @@ class Session:
     sess.commit()
     sess.close()
     """
+    engine: t.Optional[Engine]
 
     before_commit = _signals.signal("before-commit")
     after_commit = _signals.signal("after-commit")
@@ -333,6 +335,7 @@ class Session:
         self.logger_level = logger_level
         self.transactions = []
         self.ended = False
+        self.last_tx_was_virtual = False
 
     def connect(self):
         if not self.conn:
@@ -364,8 +367,11 @@ class Session:
         self.after_rollback.send(self)
 
     def close(self):
+        if self.in_transaction:
+            raise SessionError("Cannot close session with active transaction")
         if self.conn:
-            self.rollback()
+            if self.last_tx_was_virtual:
+                self.rollback()
             if self.auto_close_conn:
                 if self.engine:
                     self.engine.disconnect(self.conn)
@@ -390,6 +396,8 @@ class Session:
         if not self.transactions:
             session_context.push(self)
         virtual = virtual or self.virtual_tx or bool(self.transactions)
+        if not virtual and self.last_tx_was_virtual:
+            self.rollback()
         transaction_class = getattr(self, "transaction_class", Transaction)
         self.transactions.append(transaction_class(self, virtual))
         return self.transactions[-1]
@@ -398,12 +406,13 @@ class Session:
         tx = self.transactions.pop()
         tx.__exit__(exc_type, exc_value, exc_tb)
         if not self.transactions:
+            self.last_tx_was_virtual = tx.virtual
             session_context.pop()
             if self.close_after_tx:
                 self.close()
 
     @property
-    def transaction(self):
+    def transaction(self) -> t.Optional["Transaction"]:
         if self.transactions:
             return self.transactions[-1]
 
@@ -522,7 +531,7 @@ class Transaction:
         self.after_execute.send(self, cursor=cur, stmt=stmt, params=seq_of_parameters, many=True)
         cur.close()
 
-    def fetch(self, stmt, params=None, model=None, obj=None, loader=None, resultset_class=None):
+    def fetch(self, stmt, params=None, model=None, obj=None, loader=None, resultset_class=None) -> ResultSet:
         cursor = self.cursor(stmt, params)
 
         if obj and not model:
@@ -567,7 +576,8 @@ class Transaction:
             map = HydrationMap.create([model, nested])
         elif nested:
             map = CompositionMap(
-                lambda r: list(r.values()), {k: HydrationMap.create(v) for k, v in nested.items()}
+                nested={k: HydrationMap.create(v) for k, v in nested.items()},
+                rowid=False
             )
         elif not map:
             map = CompositionMap.create([loader, nested])
