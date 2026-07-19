@@ -17,10 +17,11 @@ class SQLType:
             return PYTHON_TYPES_MAP[python_type]
         return SQLType(getattr(python_type, "__sqltype__", python_type.__name__))
 
-    def __init__(self, sql_type, loader=None, dumper=None):
+    def __init__(self, sql_type, loader=None, dumper=None, handle_none=False):
         self.sql_type = sql_type
         self.loader = loader
         self.dumper = dumper
+        self.handle_none = handle_none
 
     def __eq__(self, other):
         if isinstance(other, SQLType):
