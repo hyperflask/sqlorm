@@ -3,7 +3,7 @@ from collections import namedtuple
 from collections.abc import Iterable
 
 
-def render(stmt, params=None, dbapi=None, paramstyle=None):
+def render(stmt, params=None, dbapi=None, paramstyle=None) -> t.Tuple[str, t.Union[dict, list]]:
     """Renders the provided sql statement and returns a tuple (sql, params)"""
     if not dbapi and not paramstyle and isinstance(params, dict):
         paramstyle = "pyformat"
@@ -36,7 +36,7 @@ class ParametrizedStmt(namedtuple("_ParametrizedStmt", ["stmt", "params"])):
 class SQLStr:
     """The base for our SQL pieces"""
 
-    def render(self):
+    def render(self) -> t.Tuple[str, t.Union[dict, list]]:
         """Renders this piece of sql and returns a tuple (sql_stmt, params)"""
         collector = ParameterCollector()
         stmt = self._render(collector)

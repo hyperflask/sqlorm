@@ -51,3 +51,19 @@ markdown_extensions:
 plugins:
   - search
   - callouts
+  - llmstxt-md:
+      enable_copy_button: false
+      sections:
+        Guides:
+          - engine.md
+          - sessions-and-transactions.md
+          - executing.md
+          - sql-functions.md
+          - models.md
+          - sql-utilities.md
+          - mapper.md
+          - signals.md
+          - schema.md
+          - drivers.md
+          - instrumentation.md
+          - integrations.md

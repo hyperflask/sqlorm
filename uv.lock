@@ -399,6 +399,19 @@ wheels = [
 ]
 
 [[package]]
+name = "mkdocs-llmstxt-md"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mkdocs" },
+    { name = "ruff" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/be/86/a899ef021e44e358544b31fd3e34aa566ff876650e7dbede3e677053a492/mkdocs_llmstxt_md-0.2.0.tar.gz", hash = "sha256:c42c86fc316c5e96920b403abfffda7615fe519baca9cdb716e9ff77b703570f", size = 8780, upload-time = "2025-08-01T14:14:10.926Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/48/96/519526b02a4429262b0e8728765a0bda8a987d1fd4e6ac7655f26ce2a245/mkdocs_llmstxt_md-0.2.0-py3-none-any.whl", hash = "sha256:ce836a6e7bc7f7d0987c8ac0703f04b51f1d7d0096a5700b042161fbbaea5175", size = 7551, upload-time = "2025-08-01T14:14:09.558Z" },
+]
+
+[[package]]
 name = "mkdocs-material"
 version = "9.6.19"
 source = { registry = "https://pypi.org/simple" }
@@ -787,6 +800,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "mkdocs-callouts" },
+    { name = "mkdocs-llmstxt-md" },
     { name = "mkdocs-material" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -808,6 +822,7 @@ requires-dist = [{ name = "blinker", specifier = ">=1.9.0" }]
 [package.metadata.requires-dev]
 dev = [
     { name = "mkdocs-callouts", specifier = ">=1.13.2" },
+    { name = "mkdocs-llmstxt-md", specifier = ">=0.2.0" },
     { name = "mkdocs-material", specifier = ">=9.5.24" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-cov", specifier = ">=6.2.1" },

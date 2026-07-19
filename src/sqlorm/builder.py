@@ -18,7 +18,7 @@ class QueryBuilder(SQLStr):
         self.parts = {"SELECT": QueryPartBuilder(self, "*")}
         self._selected = False
 
-    def _render(self, params):
+    def _render(self, params) -> str:
         stmt = []
         for component in self.components:
             component = component.rstrip("+")
@@ -27,7 +27,7 @@ class QueryBuilder(SQLStr):
                 stmt.append(component + " " + str(sql._render(params)))
         return " ".join(stmt)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> "QueryPartBuilder":
         name = name.replace("_", " ").upper().strip()
         if f"{name}+" in self.components:
             if name not in self.parts:
@@ -40,13 +40,13 @@ class QueryBuilder(SQLStr):
         self.parts[name] = QueryPartBuilder(self)
         return self.parts[name]
     
-    def select(self, *parts):
+    def select(self, *parts) -> "QueryPartBuilder":
         if not self._selected:
             self._selected = True
             self.parts["SELECT"] = QueryPartBuilder(self)
         return self.parts["SELECT"](*parts)
     
-    def where(self, *parts, **filters):
+    def where(self, *parts, **filters) -> "QueryPartBuilder":
         for k, v in filters.items():
             parts = list(parts) + [SQL(k) == v]
         return self.__getattr__("where")(*parts)

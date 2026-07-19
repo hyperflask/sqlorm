@@ -25,7 +25,7 @@ class Mapper:
     """Maps database columns to object attributes"""
 
     @classmethod
-    def from_class(cls, object_class, **kwargs):
+    def from_class(cls, object_class, **kwargs) -> "Mapper":
         """Creates a Mapper from a class annotations"""
         if hasattr(object_class, "__mapper__"):
             return object_class.__mapper__
@@ -389,7 +389,7 @@ class MappedColumnMixin:
         (used by Mapper.hydrate())
         """
         value = values[self.name]
-        if self.type and self.type.loader:
+        if self.type and self.type.loader and (value is not None or self.type.handle_none):
             value = self.type.loader(value)
         obj.__dict__[self.attribute] = value
 

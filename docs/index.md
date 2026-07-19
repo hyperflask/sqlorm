@@ -133,3 +133,7 @@ sqlorm is inspired by the many great ORMs that already exists in Python and othe
 Big shoutout to [SQL Alchemy](https://www.sqlalchemy.org/).
 
 On a side note, I had explored a similar approach in PHP in 2010 in my [classql](https://github.com/maximebf/classql) project.
+
+## Agent skill
+
+A skill file for coding agents is available at <https://raw.githubusercontent.com/hyperflask/sqlorm/refs/heads/main/docs/SKILL.md>
