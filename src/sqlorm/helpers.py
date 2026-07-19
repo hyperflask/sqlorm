@@ -1,4 +1,4 @@
-from .engine import Engine, Session, Transaction, ensure_session
+from .engine import Engine, Session, Transaction, ensure_session, get_current_session
 import functools
 
 
@@ -24,12 +24,14 @@ def connect_via_engine(engine, signal, func=None):
 
 
 def after_commit(func):
-    with ensure_session() as session:
-        def rollback_listener(session):
-            Session.after_commit.disconnect(commit_listener)
-            Session.after_rollback.disconnect(rollback_listener)
-        def commit_listener(session):
-            func()
-            rollback_listener(session)
-        Session.after_commit.connect(commit_listener, session, weak=False)
-        Session.after_rollback.connect(rollback_listener, session, weak=False)
+    if not get_current_session() or not get_current_session().in_transaction:
+        func()
+        return
+    def rollback_listener(session):
+        Session.after_commit.disconnect(commit_listener)
+        Session.after_rollback.disconnect(rollback_listener)
+    def commit_listener(session):
+        func()
+        rollback_listener(session)
+    Session.after_commit.connect(commit_listener, get_current_session(), weak=False)
+    Session.after_rollback.connect(rollback_listener, get_current_session(), weak=False)
