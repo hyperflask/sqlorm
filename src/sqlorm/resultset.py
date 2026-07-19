@@ -104,7 +104,7 @@ class CompositeResultSet(ResultSet):
         stmt = "SELECT users.username, comments.id AS comments__id, comments.content AS comments__content
                 FROM users LEFT JOIN comments ON comments.user_id = users.id"
 
-        cur = tx.fetchcomposited(stmt)
+        cur = tx.fetchcomposite(stmt)
         row = cur.fetchone()
 
         assert row["username"]
@@ -169,10 +169,10 @@ class CompositeRow:
         self.row = row
         self.is_composite = bool(nested)
 
-        if not row and self.is_composite:
+        if not row and self.is_composite and self.map.rowid != False:
             # make sure all rows with no self columns but only composition merge together
             self.id = True
-        elif self.is_composite:
+        elif self.is_composite and self.map.rowid != False:
             # we need to identify an id for this row so all future row with the same id
             # will be merged together. this allows us to handle nested data structures
             if callable(self.map.rowid):
@@ -180,7 +180,7 @@ class CompositeRow:
             elif self.map.rowid:
                 self.id = row[self.map.rowid]
             else:
-                self.id = hash(row)
+                self.id = hash(frozenset(row.items()))
         else:
             # no nested row, we don't merge with any future row
             self.id = None
@@ -192,6 +192,8 @@ class CompositeRow:
             self.nested[k] = [CompositeRow(v[0], map.get(k), separator, v[1])]
 
     def merge(self, other):
+        """Try to merge another CompositeRow into this one.
+        """
         if self.id is None or (self.id is not True and other.id != self.id):
             return False
         for k, rows in self.nested.items():
@@ -199,6 +201,8 @@ class CompositeRow:
                 rows.append(other.nested[k][-1])
 
     def compile(self, with_loader=True):
+        """Compile the rows which are part of this CompositeRow into a final structure
+        """
         for k, rows in self.nested.items():
             self.row[k] = [r.compile() for r in rows]
             if self.map.get(k).single and self.row[k]:
